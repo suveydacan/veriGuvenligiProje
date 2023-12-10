@@ -26,7 +26,7 @@
         color: #fff;
         padding: 30px;
         height: 100vh; /* Sayfa yüksekliğini 100% olarak ayarlar */
-        position: fixed; /* Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
+        position: absolute; /* Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
         left: 0; /* Sayfanın solundan başlamasını sağlar */
         }
 
@@ -45,6 +45,10 @@
         }
 
         #icon-file{
+            color: black;
+        }
+
+        .modal-title{
             color: black;
         }
     </style>
@@ -81,23 +85,30 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Seçenekleri Belirle</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">Dosya Yükle</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div> 
                     <div class="modal-body">
                         <!-- Doosya Oluştur Formu -->
-                        <form id="albumForm">
-                            <div class="form-group">
-                                <label for="albumName">Klasör Adı:</label>
-                                <input type="text" class="form-control" id="fileName" placeholder="Dosya adı giriniz:">
+                        <form id="fileForm">
+                            <div class="mb-3">
+                                <input class="form-control" type="file" id="formFile">
                             </div>
-                            <button type="button" class="btn btn-success" onclick="createDosya()">Dosya Oluştur</button>
+
+                            <hr>
+                        <select class="form-select" aria-label="Default select example">
+                            <option selected>Şifreleme Algoritması Seçiniz:</option>
+                            <option value="1">DES</option>
+                            <option value="2">AES</option>
+                            <option value="3">BLOWFISH</option>
+                            <option value="3">Hiçbiri</option>
+                        </select>
+                        
                         </form>
-    
-                        <hr>
+                        
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                        <button type="button" class="btn btn-success">Dosya Yükle</button>
                     </div>
                 </div>
             </div>
