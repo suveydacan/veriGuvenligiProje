@@ -21,13 +21,13 @@
         }
 
         .sidenav {
-        width: 250px;
-        background-color:rgb(239, 238, 238);
-        color: #fff;
-        padding: 30px;
-        height: 100vh; /* Sayfa yüksekliğini 100% olarak ayarlar */
-        position: fixed; /* Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
-        left: 0; /* Sayfanın solundan başlamasını sağlar */
+            width: 250px;
+            background-color:rgb(239, 238, 238);
+            color: #fff;
+            padding: 30px;
+            height: 100vh; /* Sayfa yüksekliğini 100% olarak ayarlar */
+            position: absolute; /* Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
+            left: 0; /* Sayfanın solundan başlamasını sağlar */
         }
 
         .element {
@@ -56,9 +56,14 @@
             margin-right: 0;
         }
 
+        .modal-title{
+            color: black;
+        }
+
     </style>
     <title>ANA SAYFA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 
 </head>
 <body>
@@ -84,33 +89,32 @@
         </nav>
     </header>
 
-    <div class="sidenav">  
-        <button type="button" class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#myModal">+ Yeni</button>
-        <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Seçenekleri Belirle</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div> 
-                    <div class="modal-body">
-                        <!-- Albüm Oluştur Formu -->
-                        <form id="albumForm">
-                            <div class="form-group">
-                                <label for="albumName">Klasör Adı:</label>
-                                <input type="text" class="form-control" id="folderName" placeholder="Klasör adı giriniz:">
-                            </div>
-                            <button type="button" class="btn btn-success" onclick="createAlbum()">Klasör Oluştur</button>
-                        </form>
-    
-                        <hr>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
-                    </div>
-                </div>
+    <div class="sidenav"> 
+        <button id="createFolderBtn" class="btn btn-light btn-lg" data-toggle="modal" data-target="#myModal">+ Yeni</button>
+        <p id="resultMessage"></p>
+
+    <div class="modal" id="myModal">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+            <h4 class="modal-title">Klasör Oluştur</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <form>
+                    <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Klasör Adını giriniz:">
+                </form>
+            </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal">Oluştur</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
             </div>
         </div>
+        </div>
+    </div>
       
         <div class="element">
             <ul>
@@ -225,31 +229,7 @@
             </div>
           </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>   
-</body>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script></body>
 </html>
-
-
-
-
- <!-- <script>
-        // Albüm Oluştur Fonksiyonu
-        function createAlbum() {
-            var albumName = document.getElementById('albumName').value;
-            // Albüm oluşturma işlemleri burada yapılır
-            console.log('Albüm Oluşturuldu: ' + albumName);
-            // İsteğe bağlı olarak başka işlemler eklenebilir
-            // Örneğin, sunucuya albüm oluşturma isteği göndermek
-        }
-
-        // Dosya Oluştur Fonksiyonu
-        function createFile() {
-            var fileName = document.getElementById('fileName').value;
-            // Dosya oluşturma işlemleri burada yapılır
-            console.log('Dosya Oluşturuldu: ' + fileName);
-            // İsteğe bağlı olarak başka işlemler eklenebilir
-            // Örneğin, sunucuya dosya oluşturma isteği göndermek
-        }
-    </script> -->
