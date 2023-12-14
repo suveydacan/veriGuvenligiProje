@@ -2,27 +2,39 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
-class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError('The Email field must be set')
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
 
-class CustomUser(AbstractBaseUser):
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)  # Adjust the length as needed
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
-    username = models.CharField(max_length=30, unique=True)
+class Folder(models.Model):
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=10, default='folder')
+    parent_folder = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
+    user_id = models.CharField(max_length=255)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    class FolderItems(models.Model):
+        folder = models.ForeignKey('Folder', on_delete=models.CASCADE)
 
-    objects = UserManager()
+    class FileItems(models.Model):
+        file = models.ForeignKey('File', null=True, blank=True, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.email
+
+
+class File(models.Model):
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=10, default='file')
+    encrypt_type = models.CharField(max_length=20, default='none')
+    parent_folder = models.ForeignKey(Folder, related_name='files', on_delete=models.CASCADE)
+    user_id = models.CharField(max_length=255)
+    size = models.BigIntegerField()
+    last_modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    # path = models.CharField(max_length=255)
+
+
+
+# eğer null ve blank girilmemişse false default değer olarak atanır
+    
+"""
+file daki parent folder daki related name özelliği ile 
+folder = Folder.objects.get(pk=1)
+files_in_folder = folder.files.all()
+yapılabiliyor
+"""
