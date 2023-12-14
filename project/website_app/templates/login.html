@@ -34,6 +34,7 @@
         <form action="{% url 'login' %}" method="POST" >
           {% csrf_token %}
             <p id="formHeader" class="text-center">KTUcloud</p>
+            <!-- TODO eğer hesaba giriş yapıldı ise home'a giriş yapılmadı ise login sayfasına yönlendirir -->
             <div class="mb-3">
                 <label for="email" class="form-label">Email adresi</label>
                 <input type="email" class="form-control" id="email" name="email">

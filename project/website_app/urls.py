@@ -9,10 +9,13 @@ from django.apps import apps
 urlpatterns = [
 
     path("", views.index, name="index"),
-    path("home/", views.home, name="home"),
+    
     path("login/", views.logIn, name="login"),
     path("signUp/", views.signUp, name="signUp"),
     path("profile/", views.profile, name="profile"),
+
+    path("home/", views.home, name="home"),
+    path("home/adding-folder", views.addFolder, name="adding-folder"),
 
 
 ]

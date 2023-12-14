@@ -54,7 +54,7 @@ def index(request):
 
     
 def home(request):
-    content= {}
+    content= {"home":"home"}
     return render(request, 'home.html',content )
 
 def logIn(request):
@@ -78,7 +78,7 @@ def signUp(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.save()
-            return redirect('login') 
+            return redirect('home') 
     else:
         form = SignUpForm()
 
@@ -95,4 +95,11 @@ def profile(request):
     content.update({"username":username})
 
     return render(request, 'profile.html',content )
+
+
+def addFolder(request):
+    folder_name = request.POST['folderName']
+    content = {"folder_names": folder_name}
+    # return render(request, 'home.html',context = content )
+    return redirect('home') 
 
