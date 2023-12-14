@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+
+        #NavbarHeader{
+            color: blue;
+            font-size: xx-large;
+        }
+
+        #home{
+            color: black;
+            font-size: x-large;
+        }
+
+        #icon{
+            color: blue;
+            width: 40px;
+            height: 40px;
+        }
+
+        #form-container {
+            width: 500px; /* Formun genişliğini ayarlar */
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        #form-body{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-direction: row;
+            height: 80vh;
+            margin:0 auto ;
+            max-width: 1200px;
+        }
+
+        #formHeader{
+            color: black;
+            font-size: xx-large;
+        }
+
+    </style>
+    <title>PROFIL</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+            <a class="navbar-brand" id="NavbarHeader" href="/website_app/home">KTUcloud</a>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a id="home" class="nav-link active" aria-current="page" href="/website_app/home">Home</a>
+                </li>
+                </ul>
+                <a href="/website_app/profile" class="icon-link">
+                    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                    </svg>
+                </a>
+            </div>
+            </div>
+        </nav>
+    </header>
+
+    <div id="form-body">
+        <div id="form-container">
+            <form>
+                <p id="formHeader" class="text-center">HESAP BİLGİLERİ</p>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <p>Kullanıcı İsmi:</p>
+                    <label for="exampleName" class="form-label">{{  request.user.username }}</label>
+                </div>
+                <div class="mb-3">
+                    <p>Ad Soyad:</p>
+                    <label for="exampleName" class="form-label">{{  request.user.first_name }} {{  request.user.last_name }}</label>
+                </div>
+                <div class="mb-3">
+                    <p>Email:</p>
+                    <label for="exampleEmail" class="form-label">{{ request.user.email }}</label>
+                </div>
+            </form>
+        </div>
+ 
+
+    
+        <div id="form-container">
+            <form>
+                <p id="formHeader" class="text-center"> ŞİFRE DEĞİŞİKLİĞİ</p>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="exampleInputPassword1">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">Password Again</label>
+                    <input type="password" class="form-control" id="exampleInputPassword1">
+                </div>
+                <button type="submit" class="btn btn-primary">Şifreyi Değiştir</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>   
+</body>
+</html>
