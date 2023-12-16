@@ -9,11 +9,6 @@ class Folder(models.Model):
     parent_folder = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
     user_id = models.CharField(max_length=255)
 
-    class FolderItems(models.Model):
-        folder = models.ForeignKey('Folder', on_delete=models.CASCADE)
-
-    class FileItems(models.Model):
-        file = models.ForeignKey('File', null=True, blank=True, on_delete=models.CASCADE)
 
 
 
@@ -37,4 +32,11 @@ file daki parent folder daki related name özelliği ile
 folder = Folder.objects.get(pk=1)
 files_in_folder = folder.files.all()
 yapılabiliyor
+
+    # class FolderItems(models.Model):
+    #     folder = models.ForeignKey('Folder', on_delete=models.CASCADE)
+
+    # class FileItems(models.Model):
+    #     file = models.ForeignKey('File', null=True, blank=True, on_delete=models.CASCADE)
+
 """
