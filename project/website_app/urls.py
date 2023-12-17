@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from . import views
 from .views import CreateFolderView
 from django.contrib import admin
@@ -15,9 +15,18 @@ urlpatterns = [
     path("signUp/", views.signUp, name="signUp"),
     path("profile/", views.profile, name="profile"),
 
-    path("home/<int:id>", views.home, name="home"),
-    path("home/<int:id>/adding-folder", CreateFolderView.as_view(), name="adding-folder"),
-    # path("home/adding-folder", views.addFolder, name="adding-folder"),
+    # path("home/<int:id>", views.home, name="home"),
+    # url(r'^prefix/(?P<path>[a-zA-Z\/]*)/$', your_view),
+    re_path(r'^home/(?P<path>[\d/]+)/$', views.home, name='home'),
+    path('home/subfolder/<path:path>/<int:id>/', views.openSubFolder, name='subfolder'),
+    # path("home/<int:id>/adding-folder", CreateFolderView.as_view(), name="adding-folder"),
+    re_path(r'^home/(?P<path>[\d/]+)/adding-folder', CreateFolderView.as_view(), name="adding-folder"),
+    path("home/<path:path>/<int:id>/delete", views.deleteFolder, name="deleteFolder"),
+    path("home/<path:path>/upload-file", views.upload_file, name="upload-file"),
+
+
+
+    path("deneme/", views.deneme, name="deneme"),
 
 
 ]

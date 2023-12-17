@@ -17,7 +17,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User, Group
 
-from .forms import SignUpForm
+from .forms import SignUpForm, FileUploadForm
 
 from pymongo import MongoClient
 from rest_framework.views import APIView
@@ -30,6 +30,7 @@ from .serializers import FolderSerializer
 import os
 import json
 from datetime import datetime, timedelta
+from django.utils import timezone
 import re
 import random
 from collections import defaultdict
@@ -81,7 +82,6 @@ def signUp(request):
     
     return render(request, 'signUp.html', {'form': form})
 
-
 def logIn(request):
     context = {}
     if request.method == 'POST':
@@ -94,39 +94,86 @@ def logIn(request):
             user_id = request.user.id
             home_folder_id = Folder.objects.get(user_id=user_id, parent_folder=None).id
 
-            return redirect('home', id=home_folder_id) 
+            return redirect('home', path=home_folder_id) 
         else:
             context.update({"error":"user none"})
 
     return render(request, 'login.html', context)
 
-def home(request, id):
-    content= {"home":"home", "id":id}
+
+def getFolders(user_id, parent_folder_id):
+    # folders= Folder.objects.get(user_id=user_id, parent_folder_id=parent_folder_id) # filtreye uyan tek bir obje geri döndürmeye çalışırmış
+    folders_object= Folder.objects.filter(user_id=user_id, parent_folder=parent_folder_id)
+    folders = []
+    for folder in folders_object:
+        folder_dict = {"name":folder.name, "id":folder.id}
+        folders.append(folder_dict)
+    return folders
+
+def deleteFolder(request, path, id):
+    if request.user.is_authenticated and request.method == 'POST':
+        user_id = request.user.id
+
+        objects = Folder.objects.filter(user_id=user_id, id=id)
+        objects.delete()
+
+        return redirect('home', path=path)
+    else:   
+        return redirect('logIn')
+
+def getFiles(user_id, parent_folder_id):
+    files_object = File.objects.filter(user_id=user_id, parent_folder_id=parent_folder_id)
+    files = []
+    for file in files_object:
+        file_dict = {"name": file.name,
+                     "encrypt_type": file.encrypt_type,
+                     "size": file.size,
+                     "last_modified": file.last_modified,
+                     "created": file.created,
+                     "file": file.file}
+        files.append(file_dict)
+    return files
+
+def deleteFile():
+    pass
+ 
+def home(request, path):
     if request.user.is_authenticated:
+        content= {"path": path}
+
+        path_parts = request.path.split('/')
+        parent_folder_id = path_parts[-2]
+        folders = getFolders(request.user.id, parent_folder_id)
+        content.update({"folders":folders})
+
+        files = getFiles(request.user.id, parent_folder_id)
+        content.update({"files":files})
+
+        form = FileUploadForm()
+        content.update({"uploadForm":form})
         return render(request, 'home.html',content )
+    else:   
+        return redirect('logIn')
+
+def openSubFolder(request, path, id):
+    if request.user.is_authenticated:
+        new_path = str(path)+"/"+str(id)
+
+        return redirect('home', path=new_path)
     else:   
         return redirect('logIn')
 
 
 def profile(request):
-    content= {}
-    username = None
+    
     if request.user.is_authenticated:
+        user_id = request.user.id
+        home_folder_id = Folder.objects.get(user_id=user_id, parent_folder=None).id
+        content= {"path": home_folder_id}
         return render(request, 'profile.html',content )
     else:
         return redirect('logIn')
 
-
-def addFolder(request):
-    requested_path = request.path
-    folder_name = request.POST['folderName']
-    path_parts = request.path.split('/')
-    content = {"folder_names": folder_name, 
-               "requested_path": requested_path,
-                "path_parts": path_parts,
-               }
-    return render(request, 'home.html',context = content )
-    # return redirect('home') 
 
 """
 if user in home page parent id will be null
@@ -134,7 +181,7 @@ if user in folder page parent id will be previous folder id
 """
 class CreateFolderView(APIView):
     
-    def post(self, request, id, format=None):
+    def post(self, request, path, format=None):
         if request.user.is_authenticated and request.method == 'POST':
             user_id = request.user.id 
             folder_name = request.data.get('folderName')
@@ -144,16 +191,49 @@ class CreateFolderView(APIView):
             folder_data = {'name': folder_name, 'user_id': user_id, 'parent_folder': parent_folder_id}
             serializer = FolderSerializer(data=folder_data)
 
-            user_id = request.user.id
-            home_folder_id = Folder.objects.get(user_id=user_id, parent_folder=None).id
-
             if serializer.is_valid():
                 serializer.save()
-                return redirect('home', id=home_folder_id) #return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return redirect('home', id=home_folder_id) #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return redirect('home', path=path) #return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return redirect('home', path=path) #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         else:
             return redirect("logIn")
         
 
+def upload_file(request, path):
+    if request.user.is_authenticated and request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            file_name = form.cleaned_data['name']
+            file_type = form.cleaned_data['file_type']
+            encrypt_type = form.cleaned_data['encrypt_type']
+            if encrypt_type == "Hiçbiri":
+                encrypt_type = None
+            path_parts = request.path.split('/')
+            parent_folder = path_parts[-2]
 
+            file_size = form.cleaned_data['file'].size
+
+            new_file = File(
+                name=file_name,
+                file_type=file_type,
+                parent_folder=parent_folder,
+                encrypt_type=encrypt_type,
+                user_id=request.user.id,  
+                size=file_size,
+                last_modified=timezone.now(),
+                created=timezone.now(),
+                file=form.cleaned_data['file']
+            )
+            new_file.save()
+
+        return redirect('home', path=path)  
+
+    return redirect("logIn")
+
+
+
+def deneme(request):
+    folders = getFolders(request.user.id, 2)
+    content = {"folders":folders}
+    return render(request, 'deneme.html',content )
