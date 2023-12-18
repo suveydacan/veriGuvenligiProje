@@ -52,11 +52,11 @@
     <header>
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-            <a class="navbar-brand" id="NavbarHeader" href="/website_app/home">KTUcloud</a>
+            <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}">KTUcloud</a>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a id="home" class="nav-link active" aria-current="page" href="/website_app/home">Home</a>
+                    <a id="home" class="nav-link active" aria-current="page" href="{% url 'home' path=path %}">Home</a>
                 </li>
                 </ul>
                 <a href="/website_app/profile" class="icon-link">

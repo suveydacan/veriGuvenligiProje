@@ -1,12 +1,6 @@
 from django import forms
+from .models import *
 
-# class SignUpForm(forms.ModelForm):
-#     class Meta:
-#         model = CustomUser
-#         fields = ['first_name', 'last_name', 'email', 'password']
-#         widgets = {
-#             'password': forms.PasswordInput(),
-#         }
 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import password_validation
@@ -40,3 +34,31 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2',)
+
+
+
+class FileUploadForm(forms.Form):
+    name = forms.CharField(required=True,widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'File Name'}))
+
+    file_types =( 
+    ("1", "pdf"), 
+    ("2", "word"), 
+    ("3", "txt"), 
+    ("4", "jpg"),  
+    ) 
+    file_type = forms.ChoiceField(choices = file_types)
+
+    encrypt_types =( 
+    ("1", "AES"), 
+    ("2", "DES"), 
+    ("3", "Blowfish"), 
+    ("3", "Hiçbiri"), 
+
+    ) 
+    encrypt_type = forms.ChoiceField(choices = encrypt_types)
+
+    file = forms.FileField(allow_empty_file=False) # max_length
+
+    class Meta:
+        model = File
+        fields = fields = ['name', 'file_type','encrypt_type', 'file']

@@ -43,18 +43,33 @@
             flex-direction: row;
             height: 90vh;
             margin:0 auto ;
-            max-width: 900px;
-            
+            max-width: 900px;    
         }
-
-        #card-icon{
-            height: 180px;
-            width: 180px;
+        .album-container i  /*folder-file icon*/
+        {
+            font-size:180px;
+            margin: 10px;
+            color: dark;
         }
-
-        #trash-icon{
+        .album-container a /*folder-file title*/
+        {
+            font-size:18px;
             color: black;
-            margin-right: 0;
+            font-weight: bold;
+        }
+        .album-container .card
+        {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 250px;
+        }
+
+        .trash-icon{
+            color: darkred;
+            margin-left: 25px;
+            justify-self: left
+            
         }
 
         .modal-title{
@@ -65,13 +80,14 @@
     <title>ANA SAYFA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-            <a class="navbar-brand" id="NavbarHeader" href="/website_app/home">KTUcloud</a>
+            <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}">KTUcloud</a>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <div class="container-fluid">
                     <form class="d-flex" role="search">
@@ -91,7 +107,7 @@
     </header>
 
     <div class="sidenav"> 
-        <button id="createFolderBtn" class="btn btn-light btn-lg" data-toggle="modal" data-target="#myModal">+ Yeni</button>
+        <button id="createFolderBtn" class="btn btn-light btn-lg" data-toggle="modal" data-target="#myModal">+ Klasör</button>
         <p id="resultMessage"></p>
 
     <div class="modal" id="myModal">
@@ -103,10 +119,10 @@
             <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <!-- Modal Body -->
-            <form id="addingDirForm" action="{% url 'adding-folder' %}" method="POST" >
+            <form id="addingDirForm" action="{% url 'adding-folder' path=path %}" method="POST" >
             {% csrf_token %}  
                 <div class="modal-body">
-                        <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Klasör Adını giriniz:">
+                    <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Klasör Adını giriniz:">
                 </div>
                 <!-- Modal Footer -->
                 <div class="modal-footer">
@@ -117,10 +133,53 @@
         </div>
         </div>
     </div>
+
+    <button class="btn btn-light btn-lg" data-toggle="modal" data-target="#FileUploadModal">+ Dosya</button>
+        <!-- Bootstrap Modal -->                          
+        <div class="modal fade" id="FileUploadModal" tabindex="-1" role="dialog" aria-labelledby="FileUploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="FileUploadModal">Dosya Yükle</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{% url 'upload-file' path=path %}" method="POST" >
+                {% csrf_token %}
+                <div class="modal-body">
+                        <div class="mb-3 form-items">
+                            <label for="" class="form-label">Dosya İsmi: </label>
+                            {{ uploadForm.name }}
+                        </div>
+                
+                        <div class="mb-3 form-items">
+                            <label for="" class="form-label">Dosya Tipi:</label>
+                            {{ uploadForm.file_type }}
+                        </div>
+            
+                        <div class="mb-3 form-items">
+                            <label for="" class="form-label">Şifreleme Türü:</label>
+                            {{ uploadForm.encrypt_type }}
+                        </div>
+                
+                        <div class="mb-3 form-items">
+                            <label for="" class="form-label">Dosyayı Seçin:</label>
+                            {{ uploadForm.file }}
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                    <button type="upload-file" class="btn btn-primary">Yükle</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
       
         <div class="element">
             <ul>
-            <li><a href="/website_app/home"  class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
+            <li><a href="{% url 'home' path=path %}"  class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-door-fill" viewBox="0 0 16 16">
                     <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
                   </svg>  Anasayfa
@@ -139,99 +198,83 @@
 
     <div class="album-container">
         <div class="row row-cols-1 row-cols-md-4 g-5">
+            {% if folders %}
+            {% for folder in folders %}
             <div class="col">
               <div class="card">
-                <a>
-                <svg id="card-icon"xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill" viewBox="0 0 16 16">
-                    <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3m-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981z"/>
-                </svg>
-                </a>
+                <i class="fa fa-folder folder-icon"></i>
                 <div class="card-body">
-                    <a class="link-secondary link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="file.html">
-                    {{folder_names}}
+                    <a href="{% url 'subfolder' path=path id=folder.id %}"> 
+                    {{folder.name}}
                     </a>
-                    <a href="#" id="trash-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                    </svg></a>
+                    <a class="fa fa-trash trash-icon" style="justify-self: left; color: red;" data-toggle="modal" data-target="#deletetionModal-{{folder.id}}"></a>
+                     <!-- Bootstrap Modal -->                          
+                     <div class="modal fade" id="deletetionModal-{{folder.id}}" tabindex="-1" role="dialog" aria-labelledby="deletetionModalLabel-{{folder.id}}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <!-- <h5 class="modal-title" id="deletetionModalLabel-{{folder.id}}">Confirm Deletion</h5> -->
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Bu klasörü silmek istediğinize emin misiniz? Klasörü sildiğiniz takdirde bu klasör altındaki diğer klasör ve dosyalarında silineceğini unutmayın.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                                    
+                                    <form id="deleteForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
+                                      {% csrf_token %}
+                                      <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_game">Sil</button>
+                                  </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>  
                 </div>
               </div>
             </div>
-            <div class="col">
-              <div class="card">
-                <a>
-                <svg id="card-icon"xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill" viewBox="0 0 16 16">
-                    <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3m-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981z"/>
-                </svg>
-                </a>
-                <div class="card-body">
-                    <a class="link-secondary link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="file.html">
-                    Yeni Klasör 2 
-                    </a>
-                    <a href="#" id="trash-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                    </svg></a>
-                </div>
-              </div>
-            </div>
-            <div class="col">
-              <div class="card">
-                <a>
-                <svg id="card-icon"xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill" viewBox="0 0 16 16">
-                    <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3m-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981z"/>
-                </svg>
-                </a>
-                <div class="card-body">
-                    <a class="link-secondary link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="file.html">
-                    Yeni Klasör 3
-                    </a>
-                    <a href="#" id="trash-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                    </svg></a>
-                </div>
-              </div>
-            </div>
-            <div class="col">
-              <div class="card">
-                <a>
-                <svg id="card-icon"xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill" viewBox="0 0 16 16">
-                    <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3m-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981z"/>
-                </svg>
-                </a>
-                <div class="card-body">
-                    <a class="link-secondary link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="file.html">
-                    Yeni Klasör 4
-                    </a>
-                    <a href="#" id="trash-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                    </svg></a>
-                </div>
-              </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <a>
-                    <svg id="card-icon"xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-fill" viewBox="0 0 16 16">
-                        <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3m-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981z"/>
-                    </svg>
-                    </a>
-                    <div class="card-body">
-                        <a class="link-secondary link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" href="file.html">
-                        Yeni Klasör 5 
-                        </a>
-                        <a href="#" id="trash-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                        </svg></a>
-                        <p>
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
+            {% endif %}
           </div>
+    </div>
+    <!-- 
+        "fa fa-file-pdf-o" pdf icon
+        "fa fa-file-word-o" word icon
+        "fa fa-file-word-o" txt icon 
+        "fa fa-file-image-o" jpeg icon
+     -->
+    <div class="file-container">
+        <p>file-container</p>
+        <div class="row row-cols-1 row-cols-md-4 g-5">
+            {% if files %}
+            {% for file in files %}
+            <div class="col">
+              <div class="card">
+                {% if file.file_type == pdf %}
+                <i class="fa fa-file-pdf-o folder-icon"></i>
+                {% elif file.file_type == word %}
+                <i class="fa fa-file-word-o folder-icon"></i>
+                {% elif file.file_type == txt %}
+                <i class="fa fa-file-word-o folder-icon"></i>
+                {% else %}
+                <i class="fa fa-file-image-o folder-icon"></i>
+                {% endif %}
+
+                <div class="card-body">
+                    <a href="#"> 
+                    {{file.name}}
+                    </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    <div>
+       
     </div>
     
     
