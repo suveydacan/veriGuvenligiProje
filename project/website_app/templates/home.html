@@ -159,19 +159,9 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{% url 'upload-file' path=path %}" method="POST" >
+                <form action="{% url 'upload-file' path=path %}" method="POST" enctype="multipart/form-data" >
                 {% csrf_token %}
                 <div class="modal-body">
-                        <div class="mb-3 form-items">
-                            <label for="name" class="form-label">Dosya İsmi: </label>
-                            {{ uploadForm.name }}
-                        </div>
-                
-                        <div class="mb-3 form-items">
-                            <label for="" class="form-label">Dosya Tipi:</label>
-                            {{ uploadForm.file_type }}
-                        </div>
-            
                         <div class="mb-3 form-items">
                             <label for="" class="form-label">Şifreleme Türü:</label>
                             {{ uploadForm.encrypt_type }}
