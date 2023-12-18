@@ -212,12 +212,15 @@ class CreateFileView(APIView):
     
     def post(self, request, path, format=None):   
         message = None
+
             
         if request.user.is_authenticated and request.method == 'POST':
             form = FileUploadForm(request.POST, request.FILES)
             if form.is_valid():
+
                 file_name = request.FILES["file"].name
                 file_type = request.FILES["file"].content_type
+
 
                 encrypt_type = form.cleaned_data['encrypt_type']
                 if encrypt_type == "Hiçbiri":
@@ -225,7 +228,9 @@ class CreateFileView(APIView):
 
                 path_parts = request.path.split('/')
                 parent_folder = path_parts[-2]
+
                 file_size = request.FILES["file"].size
+
 
                 file_data = {'name': file_name, 'file_type': file_type, 
                              'encrypt_type': encrypt_type, 'parent_folder': parent_folder, 
@@ -237,10 +242,13 @@ class CreateFileView(APIView):
                     serializer.save()
                     return redirect('home', path=path)
                 else:
+
                     message= serializer.errors
+
                     return redirect('deneme', message=message)
             else: 
                 message =  "Form is not valid"  # form.errors #
+
                 return redirect('deneme', message=message) 
         else:
             return redirect("logIn")

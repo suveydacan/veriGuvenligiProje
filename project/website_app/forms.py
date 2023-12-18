@@ -38,7 +38,6 @@ class SignUpForm(UserCreationForm):
 
 
 class FileUploadForm(forms.Form):
-    
 
     encrypt_types =( 
     ("1", "AES"), 
@@ -48,8 +47,11 @@ class FileUploadForm(forms.Form):
     ) 
     encrypt_type = forms.ChoiceField(choices = encrypt_types)
 
+
     file = forms.FileField(widget=forms.ClearableFileInput(),allow_empty_file=False) # max_length
 
     class Meta:
         model = File
         fields = fields = ['encrypt_type', 'file']
+
+
