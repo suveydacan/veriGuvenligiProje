@@ -53,7 +53,6 @@ class FileUploadForm(forms.Form):
     ("2", "DES"), 
     ("3", "Blowfish"), 
     ("3", "Hiçbiri"), 
-
     ) 
     encrypt_type = forms.ChoiceField(choices = encrypt_types)
 

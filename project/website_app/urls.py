@@ -1,6 +1,6 @@
 from django.urls import include, path, re_path
 from . import views
-from .views import CreateFolderView
+from .views import CreateFolderView, CreateFileView
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -22,11 +22,12 @@ urlpatterns = [
     # path("home/<int:id>/adding-folder", CreateFolderView.as_view(), name="adding-folder"),
     re_path(r'^home/(?P<path>[\d/]+)/adding-folder', CreateFolderView.as_view(), name="adding-folder"),
     path("home/<path:path>/<int:id>/delete", views.deleteFolder, name="deleteFolder"),
-    path("home/<path:path>/upload-file", views.upload_file, name="upload-file"),
+    # path("home/<path:path>/upload-file", views.upload_file, name="upload-file"),
+    path("home/<path:path>/upload-file", CreateFileView.as_view(), name="upload-file"),
 
 
 
-    path("deneme/", views.deneme, name="deneme"),
+    path("deneme/<str:message>", views.deneme, name="deneme"),
 
 
 ]

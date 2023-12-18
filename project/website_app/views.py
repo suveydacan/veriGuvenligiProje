@@ -24,7 +24,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import *
-from .serializers import FolderSerializer
+from .serializers import FolderSerializer, FileSerializer
 
 
 import os
@@ -198,7 +198,46 @@ class CreateFolderView(APIView):
         
         else:
             return redirect("logIn")
-        
+
+
+class CreateFileView(APIView):
+    
+    def post(self, request, path, format=None):   
+        message = None
+        if request.FILES["file"]:
+            message = "File uploaded successfully"
+        else:
+            message = "File not uploaded successfully"
+            
+        if request.user.is_authenticated and request.method == 'POST':
+            form = FileUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                file_name = form.cleaned_data['name']
+                file_type = form.cleaned_data['file_type']
+                encrypt_type = form.cleaned_data['encrypt_type']
+                if encrypt_type == "Hiçbiri":
+                    encrypt_type = None
+                path_parts = request.path.split('/')
+                parent_folder = path_parts[-2]
+                
+                file_size = request.FILES["file"].size
+
+                file_data = {'name': file_name, 'file_type': file_type, 
+                             'encrypt_type': encrypt_type, 'parent_folder': parent_folder, 
+                             'user_id': request.user.id, 'size': file_size, 
+                             'last_modified': timezone.now(), 'created': timezone.now(), 
+                             'file': request.FILES["file"]}
+                serializer = FileSerializer(data=file_data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return redirect('home', path=path)
+                else:
+                    return redirect('deneme', message=serializer.errors)
+            else: 
+                return redirect('deneme', message=message) 
+        else:
+            return redirect("logIn")
+
 
 def upload_file(request, path):
     if request.user.is_authenticated and request.method == 'POST':
@@ -233,7 +272,7 @@ def upload_file(request, path):
 
 
 
-def deneme(request):
+def deneme(request, message):
     folders = getFolders(request.user.id, 2)
-    content = {"folders":folders}
+    content = {"folders":folders, "message":message}
     return render(request, 'deneme.html',content )
