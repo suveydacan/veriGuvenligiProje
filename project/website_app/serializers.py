@@ -8,6 +8,12 @@ class FolderSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'type', 'parent_folder', 'user_id', 'files']
 
 
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['id', 'name', 'type', 'file_type', 'encrypt_type', 'parent_folder', 'user_id', 'size', 'last_modified', 'created', 'file']
+
+
 
     
 
