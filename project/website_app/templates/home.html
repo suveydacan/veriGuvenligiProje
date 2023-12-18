@@ -160,23 +160,25 @@
                     </button>
                 </div>
                 <form action="{% url 'upload-file' path=path %}" method="POST" enctype="multipart/form-data" >
-                {% csrf_token %}
-                <div class="modal-body">
-                        <div class="mb-3 form-items">
-                            <label for="" class="form-label">Şifreleme Türü:</label>
-                            {{ uploadForm.encrypt_type }}
-                        </div>
-                
-                        <div class="mb-3 form-items">
-                            <label for="" class="form-label">Dosyayı Seçin:</label>
-                            {{ uploadForm.file }}
-                        </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
-                    <button type="upload-file" class="btn btn-primary">Yükle</button>
-                </div>
-            </form>
+
+                    {% csrf_token %}
+                    <div class="modal-body">
+                            <div class="mb-3 form-items">
+                                <label for="" class="form-label">Şifreleme Türü:</label>
+                                {{ uploadForm.encrypt_type }}
+                            </div>
+                    
+                            <div class="mb-3 form-items">
+                                <label for="" class="form-label">Dosyayı Seçin:</label>
+                                {{ uploadForm.file }}
+                            </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                        <button type="upload-file" class="btn btn-primary">Yükle</button>
+                    </div>
+                </form>
+
             </div>
         </div>
     </div>

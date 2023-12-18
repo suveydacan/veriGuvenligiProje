@@ -219,15 +219,16 @@ class CreateFileView(APIView):
             if form.is_valid():
 
                 file_name = request.FILES["file"].name
-                file_type = request.FILES["file"].content_type 
+                file_type = request.FILES["file"].content_type
+
 
                 encrypt_type = form.cleaned_data['encrypt_type']
                 if encrypt_type == "Hiçbiri":
                     encrypt_type = None
+
                 path_parts = request.path.split('/')
                 parent_folder = path_parts[-2]
 
-                print(request.FILES["file"])
                 file_size = request.FILES["file"].size
 
 
@@ -235,14 +236,15 @@ class CreateFileView(APIView):
                              'encrypt_type': encrypt_type, 'parent_folder': parent_folder, 
                              'user_id': request.user.id, 'size': file_size, 
                              'last_modified': timezone.now(), 'created': timezone.now(), 
-                             'file': request.FILE["file"]}
+                             'file': request.FILES["file"]}
                 serializer = FileSerializer(data=file_data)
                 if serializer.is_valid():
                     serializer.save()
                     return redirect('home', path=path)
                 else:
 
-                    message= "serialize not valid" # serializer.errors
+                    message= serializer.errors
+
                     return redirect('deneme', message=message)
             else: 
                 message =  "Form is not valid"  # form.errors #
