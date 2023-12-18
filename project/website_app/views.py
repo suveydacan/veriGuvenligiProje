@@ -100,6 +100,14 @@ def logIn(request):
 
     return render(request, 'login.html', context)
 
+def log_out(request):
+    context = {}
+    if request.user.is_authenticated:
+         logout(request)
+         return render(request, 'login.html')
+    else:
+        context["error"] = "oturum açık değil!"
+        return render(request, 'login.html',context )
 
 def getFolders(user_id, parent_folder_id):
     # folders= Folder.objects.get(user_id=user_id, parent_folder_id=parent_folder_id) # filtreye uyan tek bir obje geri döndürmeye çalışırmış
@@ -204,14 +212,11 @@ class CreateFileView(APIView):
     
     def post(self, request, path, format=None):   
         message = None
-        if request.FILES["file"]:
-            message = "File uploaded successfully"
-        else:
-            message = "File not uploaded successfully"
             
         if request.user.is_authenticated and request.method == 'POST':
             form = FileUploadForm(request.POST, request.FILES)
             if form.is_valid():
+                handle_uploaded_file(request.FILES['file'])
                 file_name = form.cleaned_data['name']
                 file_type = form.cleaned_data['file_type']
                 encrypt_type = form.cleaned_data['encrypt_type']
@@ -219,21 +224,23 @@ class CreateFileView(APIView):
                     encrypt_type = None
                 path_parts = request.path.split('/')
                 parent_folder = path_parts[-2]
-                
-                file_size = request.FILES["file"].size
+                print(request.FILES)
+                file_size = request.FILE["file"].size
 
                 file_data = {'name': file_name, 'file_type': file_type, 
                              'encrypt_type': encrypt_type, 'parent_folder': parent_folder, 
                              'user_id': request.user.id, 'size': file_size, 
                              'last_modified': timezone.now(), 'created': timezone.now(), 
-                             'file': request.FILES["file"]}
+                             'file': request.FILE["file"]}
                 serializer = FileSerializer(data=file_data)
                 if serializer.is_valid():
                     serializer.save()
                     return redirect('home', path=path)
                 else:
-                    return redirect('deneme', message=serializer.errors)
+                    message= "serialize not valid" # serializer.errors
+                    return redirect('deneme', message=message)
             else: 
+                message =  "Form is not valid"  # form.errors #
                 return redirect('deneme', message=message) 
         else:
             return redirect("logIn")
