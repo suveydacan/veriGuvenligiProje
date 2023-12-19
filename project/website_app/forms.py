@@ -40,18 +40,29 @@ class SignUpForm(UserCreationForm):
 class FileUploadForm(forms.Form):
 
     encrypt_types =( 
-    ("1", "AES"), 
-    ("2", "DES"), 
-    ("3", "Blowfish"), 
-    ("3", "Hiçbiri"), 
+    ("AES", "AES"), 
+    ("DES", "DES"), 
+    ("Blowfish", "Blowfish"), 
+    ("Hiçbiri", "Hiçbiri"), 
     ) 
     encrypt_type = forms.ChoiceField(choices = encrypt_types)
 
+<<<<<<< HEAD
+    encryption_key = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        required=False
+    )
+=======
+>>>>>>> b8e904efb5cab0f14968dff6e956144acf339093
 
     file = forms.FileField(widget=forms.ClearableFileInput(),allow_empty_file=False) # max_length
 
     class Meta:
         model = File
+<<<<<<< HEAD
+        fields = fields = ['encrypt_type','encryption_key', 'file']
+=======
         fields = fields = ['encrypt_type', 'file']
 
 
+>>>>>>> b8e904efb5cab0f14968dff6e956144acf339093
