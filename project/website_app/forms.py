@@ -41,15 +41,20 @@ class FileUploadForm(forms.Form):
     
 
     encrypt_types =( 
-    ("1", "AES"), 
-    ("2", "DES"), 
-    ("3", "Blowfish"), 
-    ("3", "Hiçbiri"), 
+    ("AES", "AES"), 
+    ("DES", "DES"), 
+    ("Blowfish", "Blowfish"), 
+    ("Hiçbiri", "Hiçbiri"), 
     ) 
     encrypt_type = forms.ChoiceField(choices = encrypt_types)
+
+    encryption_key = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        required=False
+    )
 
     file = forms.FileField(widget=forms.ClearableFileInput(),allow_empty_file=False) # max_length
 
     class Meta:
         model = File
-        fields = fields = ['encrypt_type', 'file']
+        fields = fields = ['encrypt_type','encryption_key', 'file']

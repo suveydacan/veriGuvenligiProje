@@ -166,6 +166,11 @@
                                 <label for="" class="form-label">Şifreleme Türü:</label>
                                 {{ uploadForm.encrypt_type }}
                             </div>
+
+                            <div class="mb-3 form-items">
+                                <label for="" class="form-label">Şifreleme Anahtarı</label>
+                                {{ uploadForm.encryption_key }}
+                            </div>
                     
                             <div class="mb-3 form-items">
                                 <label for="" class="form-label">Dosyayı Seçin:</label>
@@ -256,18 +261,18 @@
             {% for file in files %}
             <div class="col">
               <div class="card">
-                {% if file.file_type == pdf %}
+                {% if file.file_type == "pdf" %}
                 <i class="fa fa-file-pdf-o folder-icon"></i>
-                {% elif file.file_type == word %}
+                {% elif file.file_type == "word" %}
                 <i class="fa fa-file-word-o folder-icon"></i>
-                {% elif file.file_type == txt %}
+                {% elif file.file_type == "txt" %}
                 <i class="fa fa-file-word-o folder-icon"></i>
                 {% else %}
                 <i class="fa fa-file-image-o folder-icon"></i>
                 {% endif %}
 
                 <div class="card-body">
-                    <a href="#"> 
+                    <a href="{{ file.file.url }}"> 
                     {{file.name}}
                     </a>
                 </div>
@@ -277,10 +282,6 @@
             {% endif %}
         </div>
     </div>
-    <div>
-       
-    </div>
-    
     
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>

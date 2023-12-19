@@ -19,6 +19,14 @@ from django.contrib.auth.models import User, Group
 
 from .forms import SignUpForm, FileUploadForm
 
+import os
+from django.http import FileResponse
+from Crypto.Cipher import DES
+from Crypto.Random import get_random_bytes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import padding
+
 from pymongo import MongoClient
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -220,21 +228,29 @@ class CreateFileView(APIView):
                 file_type = request.FILES["file"].content_type
 
                 encrypt_type = form.cleaned_data['encrypt_type']
-                if encrypt_type == "Hiçbiri":
-                    encrypt_type = None
+                encryption_key = form.cleaned_data['encryption_key']
+                if encrypt_type == "DES" :
+                     self.des_encrypt(request.FILES["file"],encryption_key, file_name)
+                elif encrypt_type == "AES" :
+                     self.aes_encrypt(request.FILES["file"],encryption_key, file_name)
+                elif encrypt_type == "Blowfish" :
+                     self.blowfish_encrypt(request.FILES["file"],encryption_key, file_name)
+                else:
+                    encrypt_type = "None"
 
                 path_parts = request.path.split('/')
                 parent_folder = path_parts[-2]
                 file_size = request.FILES["file"].size
 
                 file_data = {'name': file_name, 'file_type': file_type, 
-                             'encrypt_type': encrypt_type, 'parent_folder': parent_folder, 
+                             'encrypt_type': encrypt_type, 'encryption_key': encryption_key, 'parent_folder': parent_folder, 
                              'user_id': request.user.id, 'size': file_size, 
                              'last_modified': timezone.now(), 'created': timezone.now(), 
                              'file': request.FILES["file"]}
                 serializer = FileSerializer(data=file_data)
                 if serializer.is_valid():
                     serializer.save()
+                    
                     return redirect('home', path=path)
                 else:
                     message= serializer.errors
@@ -244,42 +260,86 @@ class CreateFileView(APIView):
                 return redirect('deneme', message=message) 
         else:
             return redirect("logIn")
+    
+    def des_encrypt(self, input_file , key, fileName):
+        byte_key = key.encode('utf-8')
 
+        cipher = DES.new(byte_key, DES.MODE_ECB)
 
-def upload_file(request, path):
-    if request.user.is_authenticated and request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            file_name = form.cleaned_data['name']
-            file_type = form.cleaned_data['file_type']
-            encrypt_type = form.cleaned_data['encrypt_type']
-            if encrypt_type == "Hiçbiri":
-                encrypt_type = None
-            path_parts = request.path.split('/')
-            parent_folder = path_parts[-2]
+        # 'InMemoryUploadedFile' içeriğini oku
+        plaintext = input_file.read()
 
-            file_size = form.cleaned_data['file'].size
+        plaintext = pad(plaintext)
+        ciphertext=cipher.encrypt(plaintext)
 
-            new_file = File(
-                name=file_name,
-                file_type=file_type,
-                parent_folder=parent_folder,
-                encrypt_type=encrypt_type,
-                user_id=request.user.id,  
-                size=file_size,
-                last_modified=timezone.now(),
-                created=timezone.now(),
-                file=form.cleaned_data['file']
-            )
-            new_file.save()
+        output_file_path ="encrypted_" +  fileName
+        with open(output_file_path, 'wb') as file:
+            file.write(ciphertext)
 
-        return redirect('home', path=path)  
+    def aes_encrypt(self, input_file , key, fileName):
+        byte_key = key.encode('utf-8')
+        # 'InMemoryUploadedFile' içeriğini oku
+        plaintext = input_file.read()
 
-    return redirect("logIn")
+        # Rastgele IV oluştur
+        iv = os.urandom(16)
 
+        # Cipher ve encryptor oluştur
+        cipher = Cipher(algorithms.AES(byte_key), modes.CFB8(iv), backend=default_backend())
+        encryptor = cipher.encryptor()
 
+        # Padding uygula
+        padder = padding.PKCS7(algorithms.AES.block_size * 8).padder()
+        padded_plaintext = padder.update(plaintext) + padder.finalize()
+
+        # Şifrele
+        ciphertext = encryptor.update(padded_plaintext) + encryptor.finalize()
+
+        output_file_path ="encrypted_" +  fileName
+        with open(output_file_path, 'wb') as file:
+            file.write(iv + ciphertext)
+
+    def blowfish_encrypt(self, input_file , key, fileName):
+        byte_key = key.encode('utf-8')
+
+        # 'InMemoryUploadedFile' içeriğini oku
+        plaintext = input_file.read()
+
+        # Blowfish'in blok boyutu 8 bayttır (64 bit)
+        block_size = 8
+
+        # Veriyi blok boyutuna uygun şekilde doldurun
+        padder = padding.PKCS7(block_size * 8).padder()
+        padded_plaintext = padder.update(plaintext) + padder.finalize()
+
+        cipher = Cipher(algorithms.Blowfish(byte_key), modes.ECB(), backend=default_backend())
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(padded_plaintext) + encryptor.finalize()
+
+        output_file_path ="encrypted_" +  fileName
+        with open(output_file_path, 'wb') as file:
+            file.write(ciphertext)
+
+    
 
 def deneme(request, message):
     folders = getFolders(request.user.id, 2)
     content = {"folders":folders, "message":message}
     return render(request, 'deneme.html',content )
+
+
+#Bu fonksiyon, Django'nun geliştirme sunucusu üzerinden medya dosyalarını servis etmenizi sağlar. 
+def media_serve(request, path):
+    media_root = settings.MEDIA_ROOT
+    file_path = os.path.join(media_root, path)
+    return FileResponse(open(file_path, 'rb'))
+
+
+def pad(data):
+    # Veriyi 8 byte'lık bloklara uygun hale getir
+    length = 8 - (len(data) % 8)
+    return data + bytes([length] * length)
+
+def unpad(data):
+    # Veriden çıkartılan dolguyu kaldır
+    return data[:-data[-1]]
