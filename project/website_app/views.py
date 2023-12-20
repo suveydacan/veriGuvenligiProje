@@ -26,6 +26,8 @@ from Crypto.Random import get_random_bytes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+from Crypto.Cipher import ARC4
+import json
 
 from pymongo import MongoClient
 from rest_framework.views import APIView
@@ -36,7 +38,7 @@ from .serializers import FolderSerializer, FileSerializer
 
 
 import os
-import json
+import csv
 from datetime import datetime, timedelta
 from django.utils import timezone
 import re
@@ -224,11 +226,11 @@ class CreateFileView(APIView):
             
         if request.user.is_authenticated and request.method == 'POST':
             form = FileUploadForm(request.POST, request.FILES)
+            user_id = request.user.id
             if form.is_valid():
 
                 file_name = request.FILES["file"].name
                 file_type = request.FILES["file"].content_type
-
 
                 encrypt_type = form.cleaned_data['encrypt_type']
                 encryption_key = form.cleaned_data['encryption_key']
@@ -255,7 +257,7 @@ class CreateFileView(APIView):
                 serializer = FileSerializer(data=file_data)
                 if serializer.is_valid():
                     serializer.save()
-                    
+                    key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder)
                     return redirect('home', path=path)
                 else:
 
@@ -351,3 +353,34 @@ def pad(data):
 def unpad(data):
     # Veriden çıkartılan dolguyu kaldır
     return data[:-data[-1]]
+
+def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_id) :
+    fileName=parent_folder_id + "/" + fileName
+
+    bilgiler = [str(user_id), encrypt_type, encryption_key, fileName]
+    key = b'SecretKey123'
+    ciphertext=encrypt_csv_with_rc4(key,bilgiler)
+
+    file_csv = str(user_id) + "_keys.csv"
+
+    # CSVs dosyasına bilgileri yazma
+    with open(file_csv, "a", newline='') as dosya:
+        # CSV dosyasına yazmak için bir yazıcı oluştur
+        csv_writer = csv.writer(dosya)
+        # Veriyi CSV dosyasına yaz
+        csv_writer.writerow(ciphertext)
+
+def rc4_encrypt(key, plaintext):
+    cipher = ARC4.new(key)
+    ciphertext = cipher.encrypt(plaintext)
+    return ciphertext
+
+def encrypt_csv_with_rc4(key, csv_data):
+    encrypted_data_csv=[]
+     # CSV verisini RC4 kullanarak şifrele
+    for data in csv_data:
+        encrypted_data=rc4_encrypt(key, data.encode())
+        encrypted_data_csv.append(encrypted_data)
+    
+    return encrypted_data_csv
+
