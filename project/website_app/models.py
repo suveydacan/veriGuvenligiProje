@@ -21,6 +21,7 @@ class File(models.Model):
     type = models.CharField(max_length=10, default='file')
     file_type = models.CharField(max_length=10, default=None)
     encrypt_type = models.CharField(max_length=20, default=None)
+    encryption_key = models.CharField(max_length=256, default=None)
     parent_folder = models.ForeignKey(Folder, related_name='files', on_delete=models.CASCADE)
     user_id = models.CharField(max_length=255)
     size = models.BigIntegerField()

@@ -27,9 +27,11 @@ urlpatterns = [
     path("home/<path:path>/upload-file", CreateFileView.as_view(), name="upload-file"),
 
 
-
+    path('media/<path>', views.media_serve, name='media-serve'),
     path("deneme/<str:message>", views.deneme, name="deneme"),
-
-
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
