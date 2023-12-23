@@ -40,6 +40,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
 # Create your views here.
 
 
@@ -100,6 +101,14 @@ def logIn(request):
 
     return render(request, 'login.html', context)
 
+def log_out(request):
+    context = {}
+    if request.user.is_authenticated:
+         logout(request)
+         return render(request, 'login.html')
+    else:
+        context["error"] = "oturum açık değil!"
+        return render(request, 'login.html',context )
 
 def getFolders(user_id, parent_folder_id):
     # folders= Folder.objects.get(user_id=user_id, parent_folder_id=parent_folder_id) # filtreye uyan tek bir obje geri döndürmeye çalışırmış
@@ -204,23 +213,25 @@ class CreateFileView(APIView):
     
     def post(self, request, path, format=None):   
         message = None
-        if request.FILES["file"]:
-            message = "file var"
-        else:
-            message = "file yok"
+
             
         if request.user.is_authenticated and request.method == 'POST':
             form = FileUploadForm(request.POST, request.FILES)
             if form.is_valid():
+
                 file_name = request.FILES["file"].name
-                file_type = request.FILES["file"].content_type 
+                file_type = request.FILES["file"].content_type
+
+
                 encrypt_type = form.cleaned_data['encrypt_type']
                 if encrypt_type == "Hiçbiri":
                     encrypt_type = None
+
                 path_parts = request.path.split('/')
                 parent_folder = path_parts[-2]
-                print(request.FILES["file"])
+
                 file_size = request.FILES["file"].size
+
 
                 file_data = {'name': file_name, 'file_type': file_type, 
                              'encrypt_type': encrypt_type, 'parent_folder': parent_folder, 
@@ -232,10 +243,13 @@ class CreateFileView(APIView):
                     serializer.save()
                     return redirect('home', path=path)
                 else:
-                    # message= "serialize not valid" # serializer.errors
+
+                    message= serializer.errors
+
                     return redirect('deneme', message=message)
             else: 
-                # message =  "Form is not valid"  # form.errors #
+                message =  "Form is not valid"  # form.errors #
+
                 return redirect('deneme', message=message) 
         else:
             return redirect("logIn")
