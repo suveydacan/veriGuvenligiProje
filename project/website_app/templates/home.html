@@ -26,20 +26,59 @@
             width: 40px;
             height: 40px;
         }
+        .header{
+            position: fixed;
+            top: 0;
+            width: 85%;
+            
+        }
+        .search-container{
+            /* display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center; */
+        }
+        .search-container input{
+            /* width: 100vh */
+        }
+        .profile-content{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
         .sidenav {
             width: 250px;
-            background-color:rgb(239, 238, 238);
+            background-color: rgb(239, 238, 238);
             color: #fff;
             padding: 30px;
-            height: 100vh; /* Sayfa yüksekliğini 100% olarak ayarlar */
-            position: absolute; /* Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
-            left: 0; /* Sayfanın solundan başlamasını sağlar */
+            height: 100vh; 
+            /* position: absolute; Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
+            left: 0; 
+            position: fixed;
+
+            display: flex;
+            flex-direction: column;
+            /* justify-content: center; */
+            vertical-align: top;
+        }
+        .button-elements {
+            margin: 50px 0 10px 0;
+            padding: 20px;
+            justify-content: space-between;
         }
 
-        .element {
-        position: absolute; /* veya relative veya fixed */
-        top: 170px;
+        .link-elements {
+            margin: 50px 0 10px 0;
+            padding: 15px;
+        }
+        .content-container{
+            margin-left: 250px;
+            width: auto;
+            position: relative;
+            overflow-y: auto;
+            z-index: 1;
         }
 
         .album-container{
@@ -70,16 +109,42 @@
             justify-content: center;
             width: 250px;
         }
-
         .trash-icon{
             color: darkred;
             margin-left: 25px;
-            justify-self: left
-            
+            justify-self: left    
         }
-
         .modal-title{
             color: black;
+        }
+
+        .file-container{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-direction: row;
+            height: 90vh;
+            margin:5px ;
+            max-width: 900px;    
+        }
+        .file-container i  /*folder-file icon*/
+        {
+            font-size:180px;
+            margin: 10px;
+            color: dark;
+        }
+        .file-container a /*folder-file title*/
+        {
+            font-size:18px;
+            color: black;
+            font-weight: bold;
+        }
+        .file-container .card
+        {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 250px;
         }
 
     </style>
@@ -90,105 +155,77 @@
 
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
-            <div class="container-fluid">
-            <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}">KTUcloud</a>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <div class="container-fluid">
-                    <form class="d-flex" role="search">
-                      <input class="form-control me-2" type="search" placeholder="Search" aria-label="cloud'da arayın">
-                      <button class="btn btn-outline-success" type="submit">Araştır</button>
-                    </form>
-                </div>
-                <a href="/website_app/profile" class="icon-link">
-                    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
-                    </svg>
-                </a>
-                <div class="icon-logout">
-                <a href="{% url 'logout' %}" class="icon-link">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
-                        <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-                    </svg>
-                </a>
-                </div>
-            </div>
-            </div>
-        </nav>
-    </header>
 
     <div class="sidenav"> 
-        <button id="createFolderBtn" class="btn btn-light btn-lg" data-toggle="modal" data-target="#myModal">+ Klasör</button>
-        <p id="resultMessage"></p>
+        <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}">KTUcloud</a>
 
-    <div class="modal" id="myModal">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <!-- Modal Header -->
-            <div class="modal-header">
-            <h4 class="modal-title">Klasör Oluştur</h4>
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <!-- Modal Body -->
-            <form id="addingDirForm" action="{% url 'adding-folder' path=path %}" method="POST" >
-            {% csrf_token %}  
-                <div class="modal-body">
-                    <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Klasör Adını giriniz:">
-                </div>
-                <!-- Modal Footer -->
-                <div class="modal-footer">
-                    <button type="adding-folder" class="btn btn-success" name="adding-folder" value="adding-folder">Oluştur</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
-                </div>
-            </form>
-        </div>
-        </div>
-    </div>
-
-    <button class="btn btn-light btn-lg" data-toggle="modal" data-target="#FileUploadModal">+ Dosya</button>
-        <!-- Bootstrap Modal -->                          
-        <div class="modal fade" id="FileUploadModal" tabindex="-1" role="dialog" aria-labelledby="FileUploadModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="FileUploadModal">Dosya Yükle</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form action="{% url 'upload-file' path=path %}" method="POST" enctype="multipart/form-data" >
-
-                    {% csrf_token %}
-                    <div class="modal-body">
-                            <div class="mb-3 form-items">
-                                <label for="" class="form-label">Şifreleme Türü:</label>
-                                {{ uploadForm.encrypt_type }}
-                            </div>
-
-                            <div class="mb-3 form-items">
-                                <label for="" class="form-label">Şifreleme Anahtarı</label>
-                                {{ uploadForm.encryption_key }}
-                            </div>
-                    
-                            <div class="mb-3 form-items">
-                                <label for="" class="form-label">Dosyayı Seçin:</label>
-                                {{ uploadForm.file }}
-                            </div>
+        <div class="button-elements">
+            <button id="createFolderBtn" class="btn btn-light btn-lg" data-toggle="modal" data-target="#myModal">+ Klasör</button>
+            <div class="modal" id="myModal">
+                <div class="modal-dialog">
+                <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                    <h4 class="modal-title">Klasör Oluştur</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
-                        <button type="upload-file" class="btn btn-primary">Yükle</button>
-                    </div>
-                </form>
+                    <!-- Modal Body -->
+                    <form id="addingDirForm" action="{% url 'adding-folder' path=path %}" method="POST" >
+                    {% csrf_token %}  
+                        <div class="modal-body">
+                            <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Klasör Adını giriniz:">
+                        </div>
+                        <!-- Modal Footer -->
+                        <div class="modal-footer">
+                            <button type="adding-folder" class="btn btn-success" name="adding-folder" value="adding-folder">Oluştur</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Kapat</button>
+                        </div>
+                    </form>
+                </div>
+                </div>
+            </div>
 
+            <button class="btn btn-light btn-lg" data-toggle="modal" data-target="#FileUploadModal">+ Dosya</button>                      
+            <div class="modal fade" id="FileUploadModal" tabindex="-1" role="dialog" aria-labelledby="FileUploadModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="FileUploadModal">Dosya Yükle</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{% url 'upload-file' path=path %}" method="POST" enctype="multipart/form-data" >
+
+                        {% csrf_token %}
+                        <div class="modal-body">
+                                <div class="mb-3 form-items">
+                                    <label for="" class="form-label">Şifreleme Türü:</label>
+                                    {{ uploadForm.encrypt_type }}
+                                </div>
+
+                                <div class="mb-3 form-items">
+                                    <label for="" class="form-label">Şifreleme Anahtarı</label>
+                                    {{ uploadForm.encryption_key }}
+                                </div>
+                        
+                                <div class="mb-3 form-items">
+                                    <label for="" class="form-label">Dosyayı Seçin:</label>
+                                    {{ uploadForm.file }}
+                                </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                            <button type="upload-file" class="btn btn-primary">Yükle</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
             </div>
         </div>
-    </div>
       
-        <div class="element">
+        <div class="link-elements">
             <ul>
             <li><a href="{% url 'home' path=path %}"  class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-door-fill" viewBox="0 0 16 16">
@@ -207,83 +244,106 @@
         </div>
     </div>
 
-    <div class="album-container">
-        <div class="row row-cols-1 row-cols-md-4 g-5">
-            {% if folders %}
-            {% for folder in folders %}
-            <div class="col">
-              <div class="card">
-                <i class="fa fa-folder folder-icon"></i>
-                <div class="card-body">
-                    <a href="{% url 'subfolder' path=path id=folder.id %}"> 
-                    {{folder.name}}
-                    </a>
-                    <a class="fa fa-trash trash-icon" style="justify-self: left; color: red;" data-toggle="modal" data-target="#deletetionModal-{{folder.id}}"></a>
-                     <!-- Bootstrap Modal -->                          
-                     <div class="modal fade" id="deletetionModal-{{folder.id}}" tabindex="-1" role="dialog" aria-labelledby="deletetionModalLabel-{{folder.id}}" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <!-- <h5 class="modal-title" id="deletetionModalLabel-{{folder.id}}">Confirm Deletion</h5> -->
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    Bu klasörü silmek istediğinize emin misiniz? Klasörü sildiğiniz takdirde bu klasör altındaki diğer klasör ve dosyalarında silineceğini unutmayın.
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
-                                    
-                                    <form id="deleteForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
-                                      {% csrf_token %}
-                                      <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_game">Sil</button>
-                                  </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>  
+    <div class="content-container">
+        
+            <div class="header row">
+                <div class="col-11 search-container">
+                    <form action="#" method= "POST" role="search">
+                        <input class="form-control" type="search" placeholder="Search" aria-label="">
+                        <button aria-colspan="ml-auto" class="btn btn-outline-success" type="submit">Araştır</button>
+                    </form>
                 </div>
-              </div>
+                <div class="col-1 profile-content">
+                        <a href="/website_app/profile" class="icon-link">
+                            <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                            </svg>
+                        </a>
+                        <a class="btn btn-lg" href="{% url 'logout' %}" class="icon-link">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                            </svg>
+                        </a>
+                </div>
             </div>
-            {% endfor %}
-            {% endif %}
-          </div>
-    </div>
-    <!-- 
-        "fa fa-file-pdf-o" pdf icon
-        "fa fa-file-word-o" word icon
-        "fa fa-file-word-o" txt icon 
-        "fa fa-file-image-o" jpeg icon
-     -->
-    <div class="file-container">
-        <p>file-container</p>
-        <div class="row row-cols-1 row-cols-md-4 g-5">
-            {% if files %}
-            {% for file in files %}
-            <div class="col">
-              <div class="card">
-                {% if file.file_type == "pdf" %}
-                <i class="fa fa-file-pdf-o folder-icon"></i>
-                {% elif file.file_type == "word" %}
-                <i class="fa fa-file-word-o folder-icon"></i>
-                {% elif file.file_type == "txt" %}
-                <i class="fa fa-file-word-o folder-icon"></i>
-                {% else %}
-                <i class="fa fa-file-image-o folder-icon"></i>
-                {% endif %}
+        <div class="container">
 
-                <div class="card-body">
-                    <a href="{{ file.file.url }}"> 
-                    {{file.name}}
-                    </a>
-                </div>
-              </div>
+            <div class="album-container">
+                <div class="row row-cols-1 row-cols-md-4 g-5">
+                    {% if folders %}
+                    {% for folder in folders %}
+                    <div class="col">
+                      <div class="card">
+                        <i class="fa fa-folder folder-icon"></i>
+                        <div class="card-body">
+                            <a href="{% url 'subfolder' path=path id=folder.id %}"> 
+                            {{folder.name}}
+                            </a>
+                            <a class="fa fa-trash trash-icon" style="justify-self: left; color: red;" data-toggle="modal" data-target="#deletetionModal-{{folder.id}}"></a>
+                             <!-- Bootstrap Modal -->                          
+                             <div class="modal fade" id="deletetionModal-{{folder.id}}" tabindex="-1" role="dialog" aria-labelledby="deletetionModalLabel-{{folder.id}}" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <!-- <h5 class="modal-title" id="deletetionModalLabel-{{folder.id}}">Confirm Deletion</h5> -->
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Bu klasörü silmek istediğinize emin misiniz? Klasörü sildiğiniz takdirde bu klasör altındaki diğer klasör ve dosyalarında silineceğini unutmayın.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                                            
+                                            <form id="deleteForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
+                                              {% csrf_token %}
+                                              <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_game">Sil</button>
+                                          </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>  
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                  </div>
             </div>
-            {% endfor %}
-            {% endif %}
+            <div class="file-container">
+                <div class="row row-cols-1 row-cols-md-4 g-5">
+                    {% if files %}
+                    {% for file in files %}
+                    <div class="col">
+                      <div class="card">
+                        {% if file.file_type == "pdf" %}
+                        <i class="fa fa-file-pdf-o folder-icon"></i>
+                        {% elif file.file_type == "word" %}
+                        <i class="fa fa-file-word-o folder-icon"></i>
+                        {% elif file.file_type == "txt" %}
+                        <i class="fa fa-file-txt-o folder-icon"></i>
+                        {% else %}
+                        <i class="fa fa-file-image-o folder-icon"></i>
+                        {% endif %}
+        
+                        <div class="card-body">
+                            <a href="{{ file.file.url }}"> 
+                            {{file.name}}
+                            </a>
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
         </div>
+
     </div>
+
     
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>

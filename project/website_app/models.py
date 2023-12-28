@@ -27,7 +27,8 @@ class File(models.Model):
     size = models.BigIntegerField()
     last_modified = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
-    file = models.FileField(upload_to='file', storage=grid_fs_storage) # upload_to=func_to_declare_where_save_it
+    file_url = models.CharField(max_length=255, default=None)
+    file = models.FileField(upload_to='file', storage=grid_fs_storage, null=True) # upload_to=func_to_declare_where_save_it
     
     # path = models.CharField(max_length=255)
 

@@ -28,10 +28,9 @@ urlpatterns = [
 
 
     path('media/<path>', views.media_serve, name='media-serve'),
-    path("deneme/<str:message>", views.deneme, name="deneme"),
+    path("deneme/", views.deneme, name="deneme"),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
+# if settings.DEBUG:
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

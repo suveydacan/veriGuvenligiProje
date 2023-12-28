@@ -232,38 +232,44 @@ class CreateFileView(APIView):
 
                 file_name = request.FILES["file"].name
                 file_type = request.FILES["file"].content_type
+                file_size = request.FILES["file"].size
+
+                path_parts = request.path.split('/')
+                parent_folder_id = path_parts[-2]
+                file_url ="encrypted_" + parent_folder_id+ "_" + file_name
 
                 encrypt_type = form.cleaned_data['encrypt_type']
                 encryption_key = form.cleaned_data['encryption_key']
+                file = form.cleaned_data['file']
+
                 if encrypt_type == "DES" :
-                     self.des_encrypt(request.FILES["file"],encryption_key, file_name)
+                     self.des_encrypt(request.FILES["file"],encryption_key, file_url)
                 elif encrypt_type == "AES" :
-                     self.aes_encrypt(request.FILES["file"],encryption_key, file_name)
+                     self.aes_encrypt(request.FILES["file"],encryption_key, file_url)
                 elif encrypt_type == "Blowfish" :
-                     self.blowfish_encrypt(request.FILES["file"],encryption_key, file_name)
+                     self.blowfish_encrypt(request.FILES["file"],encryption_key, file_url)
                 else:
                     encrypt_type = "None"
-
-                path_parts = request.path.split('/')
-                parent_folder = path_parts[-2]
-
-                file_size = request.FILES["file"].size
-
+                    file_name= parent_folder_id+ "_" + file_name
+                    self.save_nonencrypted_file(request.FILES["file"], file_name)
 
                 file_data = {'name': file_name, 'file_type': file_type, 
-                             'encrypt_type': encrypt_type, 'encryption_key': encryption_key, 'parent_folder': parent_folder, 
-                             'user_id': request.user.id, 'size': file_size, 
+                             'encrypt_type': encrypt_type, 'encryption_key': encryption_key, 'parent_folder': parent_folder_id, 
+                             'user_id': int(request.user.id), 'size': file_size, 
                              'last_modified': timezone.now(), 'created': timezone.now(), 
-                             'file': request.FILES["file"]}
+                             'file': file, #request.FILES["file"], # şifreli dosyanının kayıt edilmesi gerekir
+                             'file_url': file_url}
+                
+                # eğer chunk'a kayıt etmezse dosyayı chunka da şifreli atalım
+
                 serializer = FileSerializer(data=file_data)
                 if serializer.is_valid():
                     serializer.save()
-                    key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder)
+                    key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id)
                     return redirect('home', path=path)
+                
                 else:
-
                     message= serializer.errors
-
                     return redirect('deneme', message=message)
             else: 
                 message =  "Form is not valid"  # form.errors #
@@ -271,19 +277,23 @@ class CreateFileView(APIView):
                 return redirect('deneme', message=message) 
         else:
             return redirect("logIn")
+        
+    def save_nonencrypted_file(self, file, fileName):
+        output_file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', fileName)
+        with open(output_file_path, 'wb+') as f:
+            for chunk in file.chunks():
+                f.write(chunk)
+                
     
     def des_encrypt(self, input_file , key, fileName):
         byte_key = key.encode('utf-8')
-
         cipher = DES.new(byte_key, DES.MODE_ECB)
-
         # 'InMemoryUploadedFile' içeriğini oku
         plaintext = input_file.read()
-
         plaintext = pad(plaintext)
         ciphertext=cipher.encrypt(plaintext)
-
-        output_file_path ="encrypted_" +  fileName
+        
+        output_file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', fileName)
         with open(output_file_path, 'wb') as file:
             file.write(ciphertext)
 
@@ -333,9 +343,9 @@ class CreateFileView(APIView):
 
     
 
-def deneme(request, message):
+def deneme(request):
     folders = getFolders(request.user.id, 2)
-    content = {"folders":folders, "message":message}
+    content = {"folders":folders, "message":""}
     return render(request, 'deneme.html',content )
 
 
