@@ -12,4 +12,3 @@ urlpatterns = [
     path("website_app/", include('website_app.urls')),
 
 ]
-    
