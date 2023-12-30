@@ -27,8 +27,8 @@ urlpatterns = [
     path("home/<path:path>/upload-file", CreateFileView.as_view(), name="upload-file"),
 
 
-    path('media/<path>', views.media_serve, name='media-serve'),
-    path("deneme/", views.deneme, name="deneme"),
+    # path('media/<path>', views.media_serve, name='media-serve'),
+    # path("deneme/", views.deneme, name="deneme"),
 ]
 
 # if settings.DEBUG:

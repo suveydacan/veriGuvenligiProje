@@ -56,7 +56,7 @@
             height: 100vh; 
             /* position: absolute; Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
             left: 0; 
-            position: fixed;
+            /* position: fixed; */
 
             display: flex;
             flex-direction: column;
@@ -76,7 +76,7 @@
         .content-container{
             margin-left: 250px;
             width: auto;
-            position: relative;
+            /* position: relative; */
             overflow-y: auto;
             z-index: 1;
         }
@@ -320,19 +320,18 @@
                     <div class="col">
                       <div class="card">
                         {% if file.file_type == "pdf" %}
-                        <i class="fa fa-file-pdf-o folder-icon"></i>
+                        <i class="fa fa-file-pdf-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
                         {% elif file.file_type == "word" %}
-                        <i class="fa fa-file-word-o folder-icon"></i>
+                        <i class="fa fa-file-word-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
                         {% elif file.file_type == "txt" %}
-                        <i class="fa fa-file-txt-o folder-icon"></i>
+                        <i class="fa fa-file-txt-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
                         {% else %}
-                        <i class="fa fa-file-image-o folder-icon"></i>
+                        <i class="fa fa-file-image-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
                         {% endif %}
         
                         <div class="card-body">
-                            <a href="{{ file.file.url }}"> 
-                            {{file.name}}
-                            </a>
+                            <!-- "{% static 'game-files/game-pics/' %}{{ game.game_picture }}" -->
+                            <a> {{file.name}}</a>
                         </div>
                       </div>
                     </div>
@@ -343,6 +342,20 @@
         </div>
 
     </div>
+    <!-- {% if file.file_type == "pdf" %}
+                        <i class="fa fa-file-pdf-o folder-icon"></i>
+                        {% elif file.file_type == "word" %}
+                        <i class="fa fa-file-word-o folder-icon"></i>
+                        {% elif file.file_type == "txt" %}
+                        <i class="fa fa-file-txt-o folder-icon"></i>
+                        {% else %}
+                        <i class="fa fa-file-image-o folder-icon"></i>
+                        {% endif %}
+        
+                        <div class="card-body">
+                           "{% static 'game-files/game-pics/' %}{{ game.game_picture }}" 
+                            <a> <source src="media/encrypted_files/{{ file.file_url }}"> {{file.name}}</a>
+                        </div> -->
 
     
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

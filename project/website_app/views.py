@@ -149,7 +149,7 @@ def getFiles(user_id, parent_folder_id):
                      "size": file.size,
                      "last_modified": file.last_modified,
                      "created": file.created,
-                     "file": file.file}
+                     "file_url": file.file_url}
         files.append(file_dict)
     return files
 
@@ -230,14 +230,16 @@ class CreateFileView(APIView):
             user_id = request.user.id
             if form.is_valid():
 
-                file_name = request.FILES["file"].name
-                file_type = request.FILES["file"].content_type
-                file_size = request.FILES["file"].size
-
                 path_parts = request.path.split('/')
                 parent_folder_id = path_parts[-2]
-                file_url ="encrypted_" + parent_folder_id+ "_" + file_name
 
+                file_name = request.FILES["file"].name 
+                file_url = "encrypted_" + parent_folder_id+ "_" + file_name
+                request.FILES["file"].name = file_url
+
+                file_type = request.FILES["file"].content_type
+                file_size = request.FILES["file"].size
+                
                 encrypt_type = form.cleaned_data['encrypt_type']
                 encryption_key = form.cleaned_data['encryption_key']
                 file = form.cleaned_data['file']
@@ -250,15 +252,18 @@ class CreateFileView(APIView):
                      self.blowfish_encrypt(request.FILES["file"],encryption_key, file_url)
                 else:
                     encrypt_type = "None"
-                    file_name= parent_folder_id+ "_" + file_name
-                    self.save_nonencrypted_file(request.FILES["file"], file_name)
+                    file_url = parent_folder_id+ "_" + file_name
+                    request.FILES["file"].name = file_url
+                    self.save_nonencrypted_file(request.FILES["file"], file_url)
 
                 file_data = {'name': file_name, 'file_type': file_type, 
                              'encrypt_type': encrypt_type, 'encryption_key': encryption_key, 'parent_folder': parent_folder_id, 
                              'user_id': int(request.user.id), 'size': file_size, 
                              'last_modified': timezone.now(), 'created': timezone.now(), 
-                             'file': file, #request.FILES["file"], # şifreli dosyanının kayıt edilmesi gerekir
-                             'file_url': file_url}
+                             'file': file,
+                             'file_url': request.FILES["file"].name }
+                # return render(request, 'deneme.html', context={'file_data': file_data})
+                #request.FILES["file"], # şifreli dosyanının kayıt edilmesi gerekir
                 
                 # eğer chunk'a kayıt etmezse dosyayı chunka da şifreli atalım
 
@@ -269,12 +274,13 @@ class CreateFileView(APIView):
                     return redirect('home', path=path)
                 
                 else:
-                    message= serializer.errors
-                    return redirect('deneme', message=message)
+                    error= serializer.errors
+                    message= "serializer is not valid"
+                    return render(request, 'deneme.html',context={'message': message, "error": error } )
             else: 
-                message =  "Form is not valid"  # form.errors #
-
-                return redirect('deneme', message=message) 
+                error =   form.errors #
+                message = "form is not valid"
+                return render(request, 'deneme.html',context={'message': message, "error": error }  )
         else:
             return redirect("logIn")
         
@@ -283,8 +289,7 @@ class CreateFileView(APIView):
         with open(output_file_path, 'wb+') as f:
             for chunk in file.chunks():
                 f.write(chunk)
-                
-    
+                  
     def des_encrypt(self, input_file , key, fileName):
         byte_key = key.encode('utf-8')
         cipher = DES.new(byte_key, DES.MODE_ECB)
