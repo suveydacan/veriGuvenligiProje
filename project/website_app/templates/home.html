@@ -271,6 +271,7 @@
     </div>
 
     <div class="center-container">
+        {{folder_name}}
         <div class="album-container">
             <div class="row row-cols-1 row-cols-md-4 g-5">
                 {% if folders %}
@@ -364,7 +365,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
-                                    <form id="deleteFileForm" action="{% url 'deleteFile' path=path id=file.id %}" method="GET">
+                                    <form id="deleteFileForm" action="{% url 'deleteFile' path=path id=file.id %}" method="POST">
                                         {% csrf_token %}
                                         <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_file">Sil</button>
                                     </form>
