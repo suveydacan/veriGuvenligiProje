@@ -160,9 +160,14 @@ def getFiles(user_id, parent_folder_id):
 def deleteFile(request, path, id):
     if request.user.is_authenticated and request.method == 'POST':
         user_id = request.user.id
+        path_parts = request.path.split('/')
+        parent_folder_id = path_parts[-3]
 
-        objects = File.objects.filter(user_id=user_id, id=id)
-        objects.delete()
+        objects = File.objects.filter(user_id=user_id, parent_folder_id=parent_folder_id, id=id).first()
+        if objects:   
+            file_url = objects.file_url
+            objects.delete()
+            os.remove(os.path.join(settings.MEDIA_ROOT,'encrypted_files', file_url ))
 
         return redirect('home', path=path)
     else:   
@@ -174,6 +179,7 @@ def home(request, path):
 
         path_parts = request.path.split('/')
         parent_folder_id = path_parts[-2]
+        is_home = path_parts[-3]
         folders = getFolders(request.user.id, parent_folder_id)
         content.update({"folders":folders})
 
@@ -182,6 +188,16 @@ def home(request, path):
 
         form = FileUploadForm()
         content.update({"uploadForm":form})
+
+        folder_name = ""
+        if is_home == "home":
+            objects = Folder.objects.filter(user_id=request.user.id, parent_folder_id=None).first()
+            folder_name = objects.name
+        else:
+            objects = Folder.objects.filter(user_id=request.user.id, id=parent_folder_id).first()
+            folder_name = objects.name
+        content.update({'folder_name':folder_name})
+
         return render(request, 'home.html',content )
     else:   
         return redirect('logIn')
@@ -249,6 +265,13 @@ class CreateFileView(APIView):
                 file_url = "encrypted_" + parent_folder_id+ "_" + file_name
                 request.FILES["file"].name = file_url
 
+                # aynı dosya isminden var mı kontrolü
+                objects = File.objects.filter(user_id=user_id, parent_folder_id=parent_folder_id)
+                if objects:   
+                    for obj in objects:
+                        if obj.name == file_name:
+                            return redirect("deneme")
+
                 file_type = request.FILES["file"].content_type
                 file_size = request.FILES["file"].size
                 
@@ -275,9 +298,6 @@ class CreateFileView(APIView):
                              'file': file,
                              'file_url': request.FILES["file"].name }
                 # return render(request, 'deneme.html', context={'file_data': file_data})
-                #request.FILES["file"], # şifreli dosyanının kayıt edilmesi gerekir
-                
-                # eğer chunk'a kayıt etmezse dosyayı chunka da şifreli atalım
 
                 serializer = FileSerializer(data=file_data)
                 if serializer.is_valid():
@@ -380,18 +400,21 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
                             "file_url": objects.file_url}
                     
                     file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', file["file_url"])
-                    key = ""
                     # key = self.get_encryptKey(file["user_id"], file["encrypt_type"],file["name"])
+                    key = ""
+
                     if file["encrypt_type"] == "DES" :
                         plaintext = self.des_decrypt(file_path,key)
+                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
                     elif file["encrypt_type"] == "AES" :    
                         plaintext = self.aes_decrypt(file_path,key)
+                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
                     elif file["encrypt_type"] == "Blowfish" :
                         plaintext = self.blowfish_decrypt(file_path,key)
+                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
                     else:
                         plaintext = self.get_nonencrypted_file(file_path)
                         return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
-                         
                 else:
                     return render(request, "deneme.html", {"message":"file can not found in db"})
 
@@ -416,13 +439,8 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
             return plaintext
         
         def get_encryptKey(self, user_id, encrypt_type,fileName): 
-            pass
-
-#Bu fonksiyon, Django'nun geliştirme sunucusu üzerinden medya dosyalarını servis etmenizi sağlar. 
-def media_serve(request, path):
-    media_root = settings.MEDIA_ROOT
-    file_path = os.path.join(media_root, path)
-    return FileResponse(open(file_path, 'rb'))
+            file_csv = str(user_id) + "_keys.csv"
+            rc4_file_path = os.path.join(settings.MEDIA_ROOT, 'rc4_files', file_csv)
 
 
 def pad(data):
@@ -439,12 +457,13 @@ def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_
 
     bilgiler = [str(user_id), encrypt_type, encryption_key, fileName]
     key = b'SecretKey123'
-    ciphertext=encrypt_csv_with_rc4(key,bilgiler)
+    ciphertext=encrypt_csv_with_rc4(key,bilgiler) 
 
     file_csv = str(user_id) + "_keys.csv"
+    output_file_path = os.path.join(settings.MEDIA_ROOT, 'rc4_files', file_csv)
 
     # CSVs dosyasına bilgileri yazma
-    with open(file_csv, "a", newline='') as dosya:
+    with open(output_file_path, "a", newline='') as dosya:
         # CSV dosyasına yazmak için bir yazıcı oluştur
         csv_writer = csv.writer(dosya)
         # Veriyi CSV dosyasına yaz
@@ -481,4 +500,11 @@ def deneme(request):
     content.update({"file":objects})
 
     return render(request, 'deneme.html',content )
+
+
+# örnek fonksiyon Bu fonksiyon, Django'nun geliştirme sunucusu üzerinden medya dosyalarını servis etmenizi sağlar. 
+def media_serve(request, path):
+    media_root = settings.MEDIA_ROOT
+    file_path = os.path.join(media_root, path)
+    return FileResponse(open(file_path, 'rb'))
 
