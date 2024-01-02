@@ -1,0 +1,38 @@
+<html>
+    {% load static %}
+    <head>
+
+    </head>
+    <body>
+        {{plaintext}}
+        
+        <script>
+                        
+        function download(filename, file_type, text) {
+            var element = document.createElement('a');
+            var blob = new Blob([text], { type: file_type });
+            element.setAttribute('href', URL.createObjectURL(blob));
+            element.setAttribute('download', filename);
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        }
+
+        </script>
+        {% if plaintext %}
+        <script>
+            var file_type = "{{file_type}}";
+            var plaintext = "{{plaintext|safe}}";
+            var file_name = "{{file_name}}";
+
+            // Start file download.
+            download(file_name,file_type, plaintext);
+        </script>
+        {% endif %}
+        
+    </body>
+</html>

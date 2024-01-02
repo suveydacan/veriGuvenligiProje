@@ -145,6 +145,10 @@ def getFiles(user_id, parent_folder_id):
     files = []
     for file in files_object:
         file_dict = {"name": file.name,
+                     'id': file.id,
+                     'file_type': file.file_type,
+                     'parent_folder': file.parent_folder_id,
+                     'user_id': file.user_id,
                      "encrypt_type": file.encrypt_type,
                      "size": file.size,
                      "last_modified": file.last_modified,
@@ -153,8 +157,16 @@ def getFiles(user_id, parent_folder_id):
         files.append(file_dict)
     return files
 
-def deleteFile():
-    pass
+def deleteFile(request, path, id):
+    if request.user.is_authenticated and request.method == 'POST':
+        user_id = request.user.id
+
+        objects = File.objects.filter(user_id=user_id, id=id)
+        objects.delete()
+
+        return redirect('home', path=path)
+    else:   
+        return redirect('logIn')
  
 def home(request, path):
     if request.user.is_authenticated:
@@ -346,13 +358,65 @@ class CreateFileView(APIView):
         with open(output_file_path, 'wb') as file:
             file.write(ciphertext)
 
-    
+class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimleri get post put gibi isimler olmalı
 
-def deneme(request):
-    folders = getFolders(request.user.id, 2)
-    content = {"folders":folders, "message":""}
-    return render(request, 'deneme.html',content )
+        def get(self, request, path, id): # ???? post
+            if request.user.is_authenticated and request.method == 'GET':
 
+                path_parts = request.path.split('/')
+                parent_folder_id = path_parts[-3]
+
+                # hedef dosyanın veri tabanında bulunması
+                user_id = request.user.id
+                objects = File.objects.filter(user_id=user_id, parent_folder_id=parent_folder_id, id=id).first()
+                if objects:   
+                    file = {"name": objects.name,
+                            'id': objects.id,
+                            'file_type': objects.file_type,
+                            'parent_folder': objects.parent_folder_id,
+                            'user_id': objects.user_id,
+                            "encrypt_type": objects.encrypt_type,
+                            "size": objects.size,
+                            "file_url": objects.file_url}
+                    
+                    file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', file["file_url"])
+                    key = ""
+                    # key = self.get_encryptKey(file["user_id"], file["encrypt_type"],file["name"])
+                    if file["encrypt_type"] == "DES" :
+                        plaintext = self.des_decrypt(file_path,key)
+                    elif file["encrypt_type"] == "AES" :    
+                        plaintext = self.aes_decrypt(file_path,key)
+                    elif file["encrypt_type"] == "Blowfish" :
+                        plaintext = self.blowfish_decrypt(file_path,key)
+                    else:
+                        plaintext = self.get_nonencrypted_file(file_path)
+                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                         
+                else:
+                    return render(request, "deneme.html", {"message":"file can not found in db"})
+
+                # return redirect('home', path=path)
+            else:   
+                return redirect('logIn')
+            
+        def des_decrypt(self, file_path,key):
+            pass
+
+        def aes_decrypt(self, file_path,key):
+            pass    
+
+        def blowfish_decrypt(self, file_path,key):
+            pass
+
+        def get_nonencrypted_file(self, file_path):
+            plaintext = ""
+            with open(file_path, 'rb') as file:
+                plaintext = file.read()
+            plaintext = plaintext.decode('utf-8')
+            return plaintext
+        
+        def get_encryptKey(self, user_id, encrypt_type,fileName): 
+            pass
 
 #Bu fonksiyon, Django'nun geliştirme sunucusu üzerinden medya dosyalarını servis etmenizi sağlar. 
 def media_serve(request, path):
@@ -399,4 +463,22 @@ def encrypt_csv_with_rc4(key, csv_data):
         encrypted_data_csv.append(encrypted_data)
     
     return encrypted_data_csv
+
+
+
+def deneme(request):
+    content = {}
+    # files= getFiles(request.user.id, 2)
+    # content.update({"files":files})
+    # folders = getFolders(request.user.id, 2)
+    # content.update({"folders":folders, "message":""})
+
+    user_id = request.user.id
+    path_parts = request.path.split('/')
+    parent_folder_id = path_parts[-2]
+
+    objects = File.objects.filter(user_id=str(user_id), parent_folder_id=2, id=22)
+    content.update({"file":objects})
+
+    return render(request, 'deneme.html',content )
 

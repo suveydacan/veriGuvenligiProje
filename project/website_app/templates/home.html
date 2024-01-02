@@ -19,28 +19,25 @@
             color: blue;
             width: 40px;
             height: 40px;
+            font-size: 100px;
         }
 
-        #icon-logout{
+        .icon-logout{
             color: blue;
             width: 40px;
             height: 40px;
+            font-size: 250px;
         }
-        .header{
-            position: fixed;
-            top: 0;
-            width: 85%;
-            
-        }
-        .search-container{
-            /* display: flex;
+        
+         .search-container{
+            display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center; */
+            align-items: center; 
         }
         .search-container input{
-            /* width: 100vh */
-        }
+             width: 100vh 
+        } 
         .profile-content{
             display: flex;
             flex-direction: column;
@@ -54,9 +51,9 @@
             color: #fff;
             padding: 30px;
             height: 100vh; 
-            /* position: absolute; Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
+            position: absolute; /*Sayfanın kaydırılmasına bağlı olarak sabit kalmasını sağlar */
             left: 0; 
-            /* position: fixed; */
+            height: 100%;
 
             display: flex;
             flex-direction: column;
@@ -73,12 +70,15 @@
             margin: 50px 0 10px 0;
             padding: 15px;
         }
-        .content-container{
-            margin-left: 250px;
-            width: auto;
-            /* position: relative; */
+        
+        .center-container{
+            align-items: center;
+            flex-direction: row;
+            height: 70vh;
+            margin:0 auto ;
+            max-width: 1030px; 
+            height: 90vh;
             overflow-y: auto;
-            z-index: 1;
         }
 
         .album-container{
@@ -88,15 +88,16 @@
             flex-direction: row;
             height: 90vh;
             margin:0 auto ;
-            max-width: 900px;    
+            width: 1000px;  
+            padding: 20px; 
         }
-        .album-container i  /*folder-file icon*/
+        .album-container i  
         {
             font-size:180px;
             margin: 10px;
             color: dark;
         }
-        .album-container a /*folder-file title*/
+        .album-container a 
         {
             font-size:18px;
             color: black;
@@ -110,7 +111,7 @@
             width: 250px;
         }
         .trash-icon{
-            color: darkred;
+            color: black;
             margin-left: 25px;
             justify-self: left    
         }
@@ -118,22 +119,23 @@
             color: black;
         }
 
-        .file-container{
+         .file-container{
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-direction: row;
             height: 90vh;
-            margin:5px ;
-            max-width: 900px;    
+            margin:0 auto ;
+            width: 1000px; 
+            padding: 20px;   
         }
-        .file-container i  /*folder-file icon*/
+        .file-container i 
         {
             font-size:180px;
             margin: 10px;
             color: dark;
         }
-        .file-container a /*folder-file title*/
+        .file-container a 
         {
             font-size:18px;
             color: black;
@@ -145,7 +147,7 @@
             align-items: center;
             justify-content: center;
             width: 250px;
-        }
+        } 
 
     </style>
     <title>ANA SAYFA</title>
@@ -156,9 +158,32 @@
 </head>
 <body>
 
-    <div class="sidenav"> 
-        <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}">KTUcloud</a>
+    <header>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+            <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}" >KTUcloud</a>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="container-fluid">
+                    <form class="d-flex" role="search">
+                      <input class="form-control me-2" type="search" placeholder="Search" aria-label="cloud'da arayın">
+                      <button class="btn btn-outline-success" type="submit">Araştır</button>
+                    </form>
+                </div>
+                <a href="/website_app/profile" class="icon-link">
+                    <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                    </svg>
+                </a>
+                <a href="{% url 'logout' %}" class="icon-link">
+                    <i class="fa fa-sign-out icon-logout" aria-hidden="true"></i>
+                </a>
+            </div>
+            </div>
+        </nav>
+    </header>
 
+    <div class="sidenav"> 
         <div class="button-elements">
             <button id="createFolderBtn" class="btn btn-light btn-lg" data-toggle="modal" data-target="#myModal">+ Klasör</button>
             <div class="modal" id="myModal">
@@ -244,119 +269,126 @@
         </div>
     </div>
 
-    <div class="content-container">
-        
-            <div class="header row">
-                <div class="col-11 search-container">
-                    <form action="#" method= "POST" role="search">
-                        <input class="form-control" type="search" placeholder="Search" aria-label="">
-                        <button aria-colspan="ml-auto" class="btn btn-outline-success" type="submit">Araştır</button>
-                    </form>
-                </div>
-                <div class="col-1 profile-content">
-                        <a href="/website_app/profile" class="icon-link">
-                            <svg id="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
-                            </svg>
+    <div class="center-container">
+        <div class="album-container">
+            <div class="row row-cols-1 row-cols-md-4 g-5">
+                {% if folders %}
+                {% for folder in folders %}
+                <div class="col">
+                    <div class="card">
+                    <i class="fa fa-folder folder-icon"></i>
+                    <div class="card-body">
+                        <a href="{% url 'subfolder' path=path id=folder.id %}"> 
+                        {{folder.name}}
                         </a>
-                        <a class="btn btn-lg" href="{% url 'logout' %}" class="icon-link">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-                            </svg>
-                        </a>
-                </div>
-            </div>
-        <div class="container">
-
-            <div class="album-container">
-                <div class="row row-cols-1 row-cols-md-4 g-5">
-                    {% if folders %}
-                    {% for folder in folders %}
-                    <div class="col">
-                      <div class="card">
-                        <i class="fa fa-folder folder-icon"></i>
-                        <div class="card-body">
-                            <a href="{% url 'subfolder' path=path id=folder.id %}"> 
-                            {{folder.name}}
-                            </a>
-                            <a class="fa fa-trash trash-icon" style="justify-self: left; color: red;" data-toggle="modal" data-target="#deletetionModal-{{folder.id}}"></a>
-                             <!-- Bootstrap Modal -->                          
-                             <div class="modal fade" id="deletetionModal-{{folder.id}}" tabindex="-1" role="dialog" aria-labelledby="deletetionModalLabel-{{folder.id}}" aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <!-- <h5 class="modal-title" id="deletetionModalLabel-{{folder.id}}">Confirm Deletion</h5> -->
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            Bu klasörü silmek istediğinize emin misiniz? Klasörü sildiğiniz takdirde bu klasör altındaki diğer klasör ve dosyalarında silineceğini unutmayın.
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
-                                            
-                                            <form id="deleteForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
-                                              {% csrf_token %}
-                                              <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_game">Sil</button>
-                                          </form>
-                                        </div>
+                        <a class="fa fa-trash trash-icon" style="justify-self: left; color: black;" data-toggle="modal" data-target="#deletetionModal-{{folder.id}}"></a>
+                            <!-- Bootstrap Modal -->                          
+                            <div class="modal fade" id="deletetionModal-{{folder.id}}" tabindex="-1" role="dialog" aria-labelledby="deletetionModalLabel-{{folder.id}}" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <!-- <h5 class="modal-title" id="deletetionModalLabel-{{folder.id}}">Confirm Deletion</h5> -->
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Bu klasörü silmek istediğinize emin misiniz? Klasörü sildiğiniz takdirde bu klasör altındaki diğer klasör ve dosyalarında silineceğini unutmayın.
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                                        
+                                        <form id="deleteFolderForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_folder">Sil</button>
+                                        </form>
                                     </div>
                                 </div>
-                            </div>  
-                        </div>
-                      </div>
+                            </div>
+                        </div>  
                     </div>
-                    {% endfor %}
-                    {% endif %}
-                  </div>
-            </div>
-            <div class="file-container">
-                <div class="row row-cols-1 row-cols-md-4 g-5">
-                    {% if files %}
-                    {% for file in files %}
-                    <div class="col">
-                      <div class="card">
-                        {% if file.file_type == "pdf" %}
-                        <i class="fa fa-file-pdf-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
-                        {% elif file.file_type == "word" %}
-                        <i class="fa fa-file-word-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
-                        {% elif file.file_type == "txt" %}
-                        <i class="fa fa-file-txt-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
-                        {% else %}
-                        <i class="fa fa-file-image-o folder-icon" data-src="media/encrypted_files/{{ file.file_url }}"></i>
-                        {% endif %}
-        
-                        <div class="card-body">
-                            <!-- "{% static 'game-files/game-pics/' %}{{ game.game_picture }}" -->
-                            <a> {{file.name}}</a>
-                        </div>
-                      </div>
                     </div>
-                    {% endfor %}
-                    {% endif %}
                 </div>
+                {% endfor %}
+                {% endif %}
+                </div>
+        </div>
+        <div class="file-container">
+            <div class="row row-cols-1 row-cols-md-4 g-5">
+                {% if files %}
+                {% for file in files %}
+                <div class="col">
+                    <div class="card">
+                    {% if file.file_type == "pdf" %}
+                    <i class="fa fa-file-pdf-o folder-icon"></i>
+                    {% elif file.file_type == "word" %}
+                    <i class="fa fa-file-word-o folder-icon"></i>
+                    {% elif file.file_type == "txt" %}
+                    <i class="fa fa-file-txt-o folder-icon"></i>
+                    {% else %}
+                    <i class="fa fa-file-image-o folder-icon"></i>
+                    {% endif %}
+    
+                    <div class="card-body">
+                        <a>{{file.name}}</a>
+                        <form id="dowloadFileForm" action="{% url 'downloadFile' path=path id=file.id %}" method="GET">
+                            {% csrf_token %}
+                            <button class="icon-link" type="submit" name="dowloading_process" value="download_file"> 
+                                <svg id="icon-file" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                </svg>
+                            </button>
+                        </form>
+                        <script>
+                            var downloadingFile = '{{ downloading_file }}';
+                            downloadFile(downloadingFile);
+                        </script>
+                        <a href="#" class="icon-link" data-toggle="modal" data-target="#deletetionFileModal-{{file.id}}">
+                            <svg id="icon-file" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                            </svg>
+                        </a>
+                        <div class="modal fade" id="deletetionFileModal-{{file.id}}" tabindex="-1" role="dialog" aria-labelledby="deletetionFileModal-{{file.id}}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <!-- <h5 class="modal-title" id="deletetionFileModal-{{file.id}}">Confirm Deletion</h5> -->
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Bu dosyayı silmek istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                                    <form id="deleteFileForm" action="{% url 'deleteFile' path=path id=file.id %}" method="GET">
+                                        {% csrf_token %}
+                                        <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_file">Sil</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                    </div>
+                    </div>
+                    <script>
+                        function downloadFile(file) {
+                        const url = window.URL.createObjectURL(file);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', file.name);
+                        link.click();
+                    }
+                    </script>
+                </div>
+                {% endfor %}
+                {% endif %}
             </div>
         </div>
-
     </div>
-    <!-- {% if file.file_type == "pdf" %}
-                        <i class="fa fa-file-pdf-o folder-icon"></i>
-                        {% elif file.file_type == "word" %}
-                        <i class="fa fa-file-word-o folder-icon"></i>
-                        {% elif file.file_type == "txt" %}
-                        <i class="fa fa-file-txt-o folder-icon"></i>
-                        {% else %}
-                        <i class="fa fa-file-image-o folder-icon"></i>
-                        {% endif %}
-        
-                        <div class="card-body">
-                           "{% static 'game-files/game-pics/' %}{{ game.game_picture }}" 
-                            <a> <source src="media/encrypted_files/{{ file.file_url }}"> {{file.name}}</a>
-                        </div> -->
-
     
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
