@@ -162,6 +162,7 @@
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
             <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}" >KTUcloud</a>
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <div class="container-fluid">
                     <form class="d-flex" role="search">
@@ -297,7 +298,6 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
-                                        
                                         <form id="deleteFolderForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
                                             {% csrf_token %}
                                             <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_folder">Sil</button>
@@ -383,6 +383,7 @@
                         link.click();
                     }
                     </script>
+
                 </div>
                 {% endfor %}
                 {% endif %}
