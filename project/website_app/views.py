@@ -145,16 +145,28 @@ def getFiles(user_id, parent_folder_id):
     files = []
     for file in files_object:
         file_dict = {"name": file.name,
+                     'id': file.id,
+                     'file_type': file.file_type,
+                     'parent_folder': file.parent_folder_id,
+                     'user_id': file.user_id,
                      "encrypt_type": file.encrypt_type,
                      "size": file.size,
                      "last_modified": file.last_modified,
                      "created": file.created,
-                     "file": file.file}
+                     "file_url": file.file_url}
         files.append(file_dict)
     return files
 
-def deleteFile():
-    pass
+def deleteFile(request, path, id):
+    if request.user.is_authenticated and request.method == 'POST':
+        user_id = request.user.id
+
+        objects = File.objects.filter(user_id=user_id, id=id)
+        objects.delete()
+
+        return redirect('home', path=path)
+    else:   
+        return redirect('logIn')
  
 def home(request, path):
     if request.user.is_authenticated:
@@ -230,14 +242,16 @@ class CreateFileView(APIView):
             user_id = request.user.id
             if form.is_valid():
 
-                file_name = request.FILES["file"].name
-                file_type = request.FILES["file"].content_type
-                file_size = request.FILES["file"].size
-
                 path_parts = request.path.split('/')
                 parent_folder_id = path_parts[-2]
-                file_url ="encrypted_" + parent_folder_id+ "_" + file_name
 
+                file_name = request.FILES["file"].name 
+                file_url = "encrypted_" + parent_folder_id+ "_" + file_name
+                request.FILES["file"].name = file_url
+
+                file_type = request.FILES["file"].content_type
+                file_size = request.FILES["file"].size
+                
                 encrypt_type = form.cleaned_data['encrypt_type']
                 encryption_key = form.cleaned_data['encryption_key']
                 file = form.cleaned_data['file']
@@ -250,15 +264,18 @@ class CreateFileView(APIView):
                      self.blowfish_encrypt(request.FILES["file"],encryption_key, file_url)
                 else:
                     encrypt_type = "None"
-                    file_name= parent_folder_id+ "_" + file_name
-                    self.save_nonencrypted_file(request.FILES["file"], file_name)
+                    file_url = parent_folder_id+ "_" + file_name
+                    request.FILES["file"].name = file_url
+                    self.save_nonencrypted_file(request.FILES["file"], file_url)
 
                 file_data = {'name': file_name, 'file_type': file_type, 
                              'encrypt_type': encrypt_type, 'encryption_key': encryption_key, 'parent_folder': parent_folder_id, 
                              'user_id': int(request.user.id), 'size': file_size, 
                              'last_modified': timezone.now(), 'created': timezone.now(), 
-                             'file': file, #request.FILES["file"], # şifreli dosyanının kayıt edilmesi gerekir
-                             'file_url': file_url}
+                             'file': file,
+                             'file_url': request.FILES["file"].name }
+                # return render(request, 'deneme.html', context={'file_data': file_data})
+                #request.FILES["file"], # şifreli dosyanının kayıt edilmesi gerekir
                 
                 # eğer chunk'a kayıt etmezse dosyayı chunka da şifreli atalım
 
@@ -269,12 +286,13 @@ class CreateFileView(APIView):
                     return redirect('home', path=path)
                 
                 else:
-                    message= serializer.errors
-                    return redirect('deneme', message=message)
+                    error= serializer.errors
+                    message= "serializer is not valid"
+                    return render(request, 'deneme.html',context={'message': message, "error": error } )
             else: 
-                message =  "Form is not valid"  # form.errors #
-
-                return redirect('deneme', message=message) 
+                error =   form.errors #
+                message = "form is not valid"
+                return render(request, 'deneme.html',context={'message': message, "error": error }  )
         else:
             return redirect("logIn")
         
@@ -283,8 +301,7 @@ class CreateFileView(APIView):
         with open(output_file_path, 'wb+') as f:
             for chunk in file.chunks():
                 f.write(chunk)
-                
-    
+                  
     def des_encrypt(self, input_file , key, fileName):
         byte_key = key.encode('utf-8')
         cipher = DES.new(byte_key, DES.MODE_ECB)
@@ -341,13 +358,65 @@ class CreateFileView(APIView):
         with open(output_file_path, 'wb') as file:
             file.write(ciphertext)
 
-    
+class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimleri get post put gibi isimler olmalı
 
-def deneme(request):
-    folders = getFolders(request.user.id, 2)
-    content = {"folders":folders, "message":""}
-    return render(request, 'deneme.html',content )
+        def get(self, request, path, id): # ???? post
+            if request.user.is_authenticated and request.method == 'GET':
 
+                path_parts = request.path.split('/')
+                parent_folder_id = path_parts[-3]
+
+                # hedef dosyanın veri tabanında bulunması
+                user_id = request.user.id
+                objects = File.objects.filter(user_id=user_id, parent_folder_id=parent_folder_id, id=id).first()
+                if objects:   
+                    file = {"name": objects.name,
+                            'id': objects.id,
+                            'file_type': objects.file_type,
+                            'parent_folder': objects.parent_folder_id,
+                            'user_id': objects.user_id,
+                            "encrypt_type": objects.encrypt_type,
+                            "size": objects.size,
+                            "file_url": objects.file_url}
+                    
+                    file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', file["file_url"])
+                    key = ""
+                    # key = self.get_encryptKey(file["user_id"], file["encrypt_type"],file["name"])
+                    if file["encrypt_type"] == "DES" :
+                        plaintext = self.des_decrypt(file_path,key)
+                    elif file["encrypt_type"] == "AES" :    
+                        plaintext = self.aes_decrypt(file_path,key)
+                    elif file["encrypt_type"] == "Blowfish" :
+                        plaintext = self.blowfish_decrypt(file_path,key)
+                    else:
+                        plaintext = self.get_nonencrypted_file(file_path)
+                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                         
+                else:
+                    return render(request, "deneme.html", {"message":"file can not found in db"})
+
+                # return redirect('home', path=path)
+            else:   
+                return redirect('logIn')
+            
+        def des_decrypt(self, file_path,key):
+            pass
+
+        def aes_decrypt(self, file_path,key):
+            pass    
+
+        def blowfish_decrypt(self, file_path,key):
+            pass
+
+        def get_nonencrypted_file(self, file_path):
+            plaintext = ""
+            with open(file_path, 'rb') as file:
+                plaintext = file.read()
+            plaintext = plaintext.decode('utf-8')
+            return plaintext
+        
+        def get_encryptKey(self, user_id, encrypt_type,fileName): 
+            pass
 
 #Bu fonksiyon, Django'nun geliştirme sunucusu üzerinden medya dosyalarını servis etmenizi sağlar. 
 def media_serve(request, path):
@@ -394,4 +463,22 @@ def encrypt_csv_with_rc4(key, csv_data):
         encrypted_data_csv.append(encrypted_data)
     
     return encrypted_data_csv
+
+
+
+def deneme(request):
+    content = {}
+    # files= getFiles(request.user.id, 2)
+    # content.update({"files":files})
+    # folders = getFolders(request.user.id, 2)
+    # content.update({"folders":folders, "message":""})
+
+    user_id = request.user.id
+    path_parts = request.path.split('/')
+    parent_folder_id = path_parts[-2]
+
+    objects = File.objects.filter(user_id=str(user_id), parent_folder_id=2, id=22)
+    content.update({"file":objects})
+
+    return render(request, 'deneme.html',content )
 

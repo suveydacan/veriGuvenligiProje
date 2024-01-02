@@ -19,7 +19,7 @@ class Folder(models.Model):
 class File(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10, default='file')
-    file_type = models.CharField(max_length=10, default=None)
+    file_type = models.CharField(max_length=100, default=None)
     encrypt_type = models.CharField(max_length=20, default=None)
     encryption_key = models.CharField(max_length=256, default=None)
     parent_folder = models.ForeignKey(Folder, related_name='files', on_delete=models.CASCADE)
@@ -27,7 +27,7 @@ class File(models.Model):
     size = models.BigIntegerField()
     last_modified = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
-    file_url = models.CharField(max_length=255, default=None)
+    file_url = models.CharField(max_length=512)
     file = models.FileField(upload_to='file', storage=grid_fs_storage, null=True) # upload_to=func_to_declare_where_save_it
     
     # path = models.CharField(max_length=255)

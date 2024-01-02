@@ -161,7 +161,8 @@
     <header>
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
-            <a class="navbar-brand" id="NavbarHeader">KTUcloud</a>
+            <a class="navbar-brand" id="NavbarHeader" href="{% url 'home' path=path %}" >KTUcloud</a>
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <div class="container-fluid">
                     <form class="d-flex" role="search">
@@ -297,10 +298,9 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
-                                        
-                                        <form id="deleteForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
+                                        <form id="deleteFolderForm" action="{% url 'deleteFolder' path=path id=folder.id %}" method="POST">
                                             {% csrf_token %}
-                                            <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_game">Sil</button>
+                                            <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_folder">Sil</button>
                                         </form>
                                     </div>
                                 </div>
@@ -330,19 +330,60 @@
                     {% endif %}
     
                     <div class="card-body">
-                        <a href="{{ file.file.url }}"> 
-                        {{file.name}}
+                        <a>{{file.name}}</a>
+                        <form id="dowloadFileForm" action="{% url 'downloadFile' path=path id=file.id %}" method="GET">
+                            {% csrf_token %}
+                            <button class="icon-link" type="submit" name="dowloading_process" value="download_file"> 
+                                <svg id="icon-file" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                </svg>
+                            </button>
+                        </form>
+                        <script>
+                            var downloadingFile = '{{ downloading_file }}';
+                            downloadFile(downloadingFile);
+                        </script>
+                        <a href="#" class="icon-link" data-toggle="modal" data-target="#deletetionFileModal-{{file.id}}">
+                            <svg id="icon-file" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                            </svg>
                         </a>
-                        <a href="#" class="icon-link"> <svg id="icon-file" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                        </svg></a>
-                        <a a href="#" class="icon-link"><svg id="icon-file" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                        </svg></a>
+                        <div class="modal fade" id="deletetionFileModal-{{file.id}}" tabindex="-1" role="dialog" aria-labelledby="deletetionFileModal-{{file.id}}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <!-- <h5 class="modal-title" id="deletetionFileModal-{{file.id}}">Confirm Deletion</h5> -->
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Bu dosyayı silmek istediğinize emin misiniz?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Vazgeç</button>
+                                    <form id="deleteFileForm" action="{% url 'deleteFile' path=path id=file.id %}" method="GET">
+                                        {% csrf_token %}
+                                        <button class="btn btn-danger" type="submit" name="deletetion_process" value="delete_file">Sil</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
                     </div>
                     </div>
+                    <script>
+                        function downloadFile(file) {
+                        const url = window.URL.createObjectURL(file);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', file.name);
+                        link.click();
+                    }
+                    </script>
+
                 </div>
                 {% endfor %}
                 {% endif %}
