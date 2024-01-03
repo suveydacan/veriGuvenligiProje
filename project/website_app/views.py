@@ -169,6 +169,8 @@ def deleteFile(request, path, id):
             file_url = objects.file_url
             objects.delete()
             os.remove(os.path.join(settings.MEDIA_ROOT,'encrypted_files', file_url ))
+            if(objects.encrypt_type=='DES' or objects.encrypt_type=='AES' or objects.encrypt_type=='Blowfish' ):
+                information_delete_from_rc4File(user_id, objects.encrypt_type, objects.name, objects.parent_folder_id)
 
         return redirect('home', path=path)
     else:   
@@ -510,6 +512,49 @@ def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_
         csv_writer = csv.writer(dosya)
         # Veriyi CSV dosyasına yaz
         csv_writer.writerow(encrypted_result_str)
+
+def information_delete_from_rc4File(userId, encrypt_type, fileName, parentId):
+    filePath = "website_app/media/rc4_files/"+ str(userId) + "_keys.csv"
+    fileName = str(parentId) + "/" + fileName
+
+    data_list = []
+
+    with open(filePath, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile)
+        
+        for row in csv_reader:
+            data_list.append(row)
+    
+    key = b'SecretKey123'
+
+    decrypted_result = decrypt_csv_with_rc4(key, data_list)
+
+    updated_decrypted_result = []
+
+    for row in decrypted_result:
+        if not (str(userId) == row[0] and encrypt_type == row[1] and fileName == row[3]):
+            updated_decrypted_result.append(row)
+      
+    updated_encrypted_result = []
+
+    for row in updated_decrypted_result:
+         ciphertext=encrypt_csv_with_rc4(key,row)
+         encrypted_result_str =[str(item) for item in ciphertext]
+         updated_encrypted_result.append(encrypted_result_str)
+    
+    os.remove(filePath)
+
+    file_csv = str(userId) + "_keys.csv"
+    output_file_path = os.path.join(settings.MEDIA_ROOT, 'rc4_files', file_csv)
+
+    if(len(updated_encrypted_result) != 0):
+        # CSVs dosyasına bilgileri yazma
+        with open(output_file_path, "a", newline='') as dosya:
+            # CSV dosyasına yazmak için bir yazıcı oluştur
+            csv_writer = csv.writer(dosya)
+            # Veriyi CSV dosyasına yaz
+            csv_writer.writerow(encrypted_result_str)
+                
 
 def rc4_file_decrypt(userId,fileName,parentId):
     filePath = "website_app/media/rc4_files/"+ str(userId) + "_keys.csv"
