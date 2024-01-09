@@ -24,6 +24,7 @@
 
         #form-container {
             width: 500px; /* Formun genişliğini ayarlar */
+            height: 400px;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
@@ -43,6 +44,20 @@
             color: black;
             font-size: xx-large;
         }
+
+        #form-container-dosya {
+            width: 400px; /* Formun genişliğini ayarlar */
+            height: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        #form-container,
+        #form-container-dosya {
+        width: 33%; /* İki formun yarısını kaplayacak şekilde ayarlayabilirsiniz */
+        margin-right: 20px; /* Formlar arasında bir boşluk ekleyebilirsiniz */
+    }
 
     </style>
     <title>PROFIL</title>
@@ -112,6 +127,24 @@
                     <input type="password" class="form-control" id="exampleInputPassword1">
                 </div>
                 <button type="submit" class="btn btn-primary">Şifreyi Değiştir</button>
+            </form>
+        </div>
+
+        <div id="form-container-dosya">
+            <form action="{% url 'rc4' %}" method="POST" >
+                {% csrf_token %}
+                <p id="formHeader" class="text-center"> DOSYA PAROLA BELİRLEME</p>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="exampleInputPassword2" name="password1">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">Password Again</label>
+                    <input type="password" class="form-control" id="exampleInputPassword2" name="password2">
+                </div>
+                {% if not active %}
+                <button type="submit" class="btn btn-primary">GÖNDER</button>
+                {% endif %}
             </form>
         </div>
     </div>

@@ -27,6 +27,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 from Crypto.Cipher import ARC4
+import base64
 import json
 
 from pymongo import MongoClient
@@ -34,7 +35,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import *
-from .serializers import FolderSerializer, FileSerializer
+from .serializers import FolderSerializer, FileSerializer , FileRC4Serializers
 
 
 import os
@@ -168,6 +169,8 @@ def deleteFile(request, path, id):
             file_url = objects.file_url
             objects.delete()
             os.remove(os.path.join(settings.MEDIA_ROOT,'encrypted_files', file_url ))
+            if(objects.encrypt_type=='DES' or objects.encrypt_type=='AES' or objects.encrypt_type=='Blowfish' ):
+                information_delete_from_rc4File(user_id, objects.encrypt_type, objects.name, objects.parent_folder_id)
 
         return redirect('home', path=path)
     else:   
@@ -217,6 +220,12 @@ def profile(request):
         user_id = request.user.id
         home_folder_id = Folder.objects.get(user_id=user_id, parent_folder=None).id
         content= {"path": home_folder_id}
+        objects = FileRC4.objects.filter(user_id=user_id).first()
+        if objects:   
+            active= objects.active
+            if active == True : 
+                content.update({"active": active})
+
         return render(request, 'profile.html',content )
     else:
         return redirect('logIn')
@@ -279,17 +288,29 @@ class CreateFileView(APIView):
                 encryption_key = form.cleaned_data['encryption_key']
                 file = form.cleaned_data['file']
 
-                if encrypt_type == "DES" :
-                     self.des_encrypt(request.FILES["file"],encryption_key, file_url)
-                elif encrypt_type == "AES" :
-                     self.aes_encrypt(request.FILES["file"],encryption_key, file_url)
-                elif encrypt_type == "Blowfish" :
-                     self.blowfish_encrypt(request.FILES["file"],encryption_key, file_url)
+                objects_key = FileRC4.objects.filter(user_id=user_id).first()
+                rc4_key = ""
+
+                if objects_key:
+                    rc4_key = objects_key.rc4_key
+
+                    if encrypt_type == "DES" :
+                        self.des_encrypt(request.FILES["file"],encryption_key, file_url)
+                        key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id,rc4_key)
+                    elif encrypt_type == "AES" :
+                        self.aes_encrypt(request.FILES["file"],encryption_key, file_url)
+                        key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id,rc4_key )
+                    elif encrypt_type == "Blowfish" :
+                        self.blowfish_encrypt(request.FILES["file"],encryption_key, file_url)
+                        key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id, rc4_key)
+                    else:
+                        encrypt_type = "None"
+                        file_url = parent_folder_id+ "_" + file_name
+                        request.FILES["file"].name = file_url
+                        self.save_nonencrypted_file(request.FILES["file"], file_url)
                 else:
-                    encrypt_type = "None"
-                    file_url = parent_folder_id+ "_" + file_name
-                    request.FILES["file"].name = file_url
-                    self.save_nonencrypted_file(request.FILES["file"], file_url)
+                    return render(request, 'deneme.html', context={'message': "rc4 key bulunamadı"})
+                
 
                 file_data = {'name': file_name, 'file_type': file_type, 
                              'encrypt_type': encrypt_type, 'encryption_key': encryption_key, 'parent_folder': parent_folder_id, 
@@ -302,7 +323,6 @@ class CreateFileView(APIView):
                 serializer = FileSerializer(data=file_data)
                 if serializer.is_valid():
                     serializer.save()
-                    key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id)
                     return redirect('home', path=path)
                 
                 else:
@@ -353,7 +373,7 @@ class CreateFileView(APIView):
         # Şifrele
         ciphertext = encryptor.update(padded_plaintext) + encryptor.finalize()
 
-        output_file_path ="encrypted_" +  fileName
+        output_file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', fileName)
         with open(output_file_path, 'wb') as file:
             file.write(iv + ciphertext)
 
@@ -374,7 +394,7 @@ class CreateFileView(APIView):
         encryptor = cipher.encryptor()
         ciphertext = encryptor.update(padded_plaintext) + encryptor.finalize()
 
-        output_file_path ="encrypted_" +  fileName
+        output_file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', fileName)
         with open(output_file_path, 'wb') as file:
             file.write(ciphertext)
 
@@ -401,20 +421,33 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
                     
                     file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', file["file_url"])
                     # key = self.get_encryptKey(file["user_id"], file["encrypt_type"],file["name"])
-                    key = ""
 
-                    if file["encrypt_type"] == "DES" :
-                        plaintext = self.des_decrypt(file_path,key)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
-                    elif file["encrypt_type"] == "AES" :    
-                        plaintext = self.aes_decrypt(file_path,key)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
-                    elif file["encrypt_type"] == "Blowfish" :
-                        plaintext = self.blowfish_decrypt(file_path,key)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                    objects_key = FileRC4.objects.filter(user_id=user_id).first()
+                    rc4_key = ""
+
+                    if objects_key:
+                        rc4_key = objects_key.rc4_key
+                   
+
+                        if file["encrypt_type"] == "DES" :
+                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_idi, rc4_key)
+                            plaintext = self.des_decrypt(file_path,key)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                        elif file["encrypt_type"] == "AES" : 
+                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id, rc4_key)   
+                            plaintext = self.aes_decrypt(file_path,key)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                        elif file["encrypt_type"] == "Blowfish" :
+                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id, rc4_key) 
+                            plaintext = self.blowfish_decrypt(file_path,key)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                        else:
+                            plaintext = self.get_nonencrypted_file(file_path)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                    
                     else:
-                        plaintext = self.get_nonencrypted_file(file_path)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                       return render(request, "deneme.html", {"message":"rc4 key bulunamadı."})
+
                 else:
                     return render(request, "deneme.html", {"message":"file can not found in db"})
 
@@ -422,14 +455,48 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
             else:   
                 return redirect('logIn')
             
-        def des_decrypt(self, file_path,key):
-            pass
+        def des_decrypt(self, file_path, key):
+            cipher = DES.new(key, DES.MODE_ECB)
+
+            with open(file_path, 'rb') as file:
+              ciphertext = file.read()
+
+            plaintext = cipher.decrypt(ciphertext)
+            plaintext = unpad(plaintext)
+            plaintext=plaintext.decode('utf-8')
+
+            return plaintext 
 
         def aes_decrypt(self, file_path,key):
-            pass    
+            with open(file_path, 'rb') as file:
+                data = file.read()
+            
+            iv = data[:16]
+            ciphertext = data[16:]   
+
+            cipher = Cipher(algorithms.AES(key), modes.CFB8(iv), backend=default_backend())
+            decryptor = cipher.decryptor()
+
+            decrypted_text = decryptor.update(ciphertext) + decryptor.finalize()
+            unpadder = padding.PKCS7(algorithms.AES.block_size * 8).unpadder()
+            unpadded_plaintext = unpadder.update(decrypted_text) + unpadder.finalize()
+            unpadded_plaintext=unpadded_plaintext.decode('utf-8')
+            return unpadded_plaintext
 
         def blowfish_decrypt(self, file_path,key):
-            pass
+            with open(file_path, 'rb') as file:
+                ciphertext = file.read()
+
+            cipher = Cipher(algorithms.Blowfish(key), modes.ECB(), backend=default_backend())
+            decryptor = cipher.decryptor()
+            padded_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+
+            unpadder = padding.PKCS7(8 * 8).unpadder()
+            plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
+
+            plaintext=plaintext.decode('utf-8')
+
+            return plaintext
 
         def get_nonencrypted_file(self, file_path):
             plaintext = ""
@@ -442,6 +509,28 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
             file_csv = str(user_id) + "_keys.csv"
             rc4_file_path = os.path.join(settings.MEDIA_ROOT, 'rc4_files', file_csv)
 
+class RC4KeyView(APIView):
+    def post(self, request, format=None):
+        if request.user.is_authenticated and request.method == 'POST':
+            user_id = request.user.id 
+            password = request.POST.get('password1')
+            againPassword = request.POST.get('password2')
+
+            if password == againPassword:
+                    rc4_key = password
+                    #FileRC4.objects.create(user_id=user_id, rc4_key=rc4_key)
+                    rc4_data = {'user_id': user_id, 'rc4_key': rc4_key, 'active': True}
+                    serializer = FileRC4Serializers(data=rc4_data)
+
+                    if serializer.is_valid():
+                       serializer.save()
+                       return redirect('profile') #return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+                    return render(request, 'deneme.html',{"message":"Yuppii"})
+            else:
+                    return render(request, 'deneme.html',{"message":"Şifreler eşleşmiyor. Lütfen tekrar deneyin."})
+        else:
+            return redirect("logIn")
 
 def pad(data):
     # Veriyi 8 byte'lık bloklara uygun hale getir
@@ -452,12 +541,14 @@ def unpad(data):
     # Veriden çıkartılan dolguyu kaldır
     return data[:-data[-1]]
 
-def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_id) :
+def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_id, rc4Key) :
     fileName=parent_folder_id + "/" + fileName
 
     bilgiler = [str(user_id), encrypt_type, encryption_key, fileName]
-    key = b'SecretKey123'
+    key = rc4Key.encode('utf-8')
     ciphertext=encrypt_csv_with_rc4(key,bilgiler) 
+    # Şifrelenmiş veriyi stringe çevirme
+    encrypted_result_str =[str(item) for item in ciphertext] 
 
     file_csv = str(user_id) + "_keys.csv"
     output_file_path = os.path.join(settings.MEDIA_ROOT, 'rc4_files', file_csv)
@@ -467,7 +558,74 @@ def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_
         # CSV dosyasına yazmak için bir yazıcı oluştur
         csv_writer = csv.writer(dosya)
         # Veriyi CSV dosyasına yaz
-        csv_writer.writerow(ciphertext)
+        csv_writer.writerow(encrypted_result_str)
+
+def information_delete_from_rc4File(userId, encrypt_type, fileName, parentId):
+    filePath = "website_app/media/rc4_files/"+ str(userId) + "_keys.csv"
+    fileName = str(parentId) + "/" + fileName
+
+    data_list = []
+
+    with open(filePath, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile)
+        
+        for row in csv_reader:
+            data_list.append(row)
+    
+    key = b'SecretKey123'
+
+    decrypted_result = decrypt_csv_with_rc4(key, data_list)
+
+    updated_decrypted_result = []
+
+    for row in decrypted_result:
+        if not (str(userId) == row[0] and encrypt_type == row[1] and fileName == row[3]):
+            updated_decrypted_result.append(row)
+      
+    updated_encrypted_result = []
+
+    for row in updated_decrypted_result:
+         ciphertext=encrypt_csv_with_rc4(key,row)
+         encrypted_result_str =[str(item) for item in ciphertext]
+         updated_encrypted_result.append(encrypted_result_str)
+    
+    os.remove(filePath)
+
+    file_csv = str(userId) + "_keys.csv"
+    output_file_path = os.path.join(settings.MEDIA_ROOT, 'rc4_files', file_csv)
+
+    if(len(updated_encrypted_result) != 0):
+        # CSVs dosyasına bilgileri yazma
+        with open(output_file_path, "a", newline='') as dosya:
+            # CSV dosyasına yazmak için bir yazıcı oluştur
+            csv_writer = csv.writer(dosya)
+            # Veriyi CSV dosyasına yaz
+            csv_writer.writerow(encrypted_result_str)
+                
+
+def rc4_file_decrypt(userId,fileName,parentId,rc4Key):
+    filePath = "website_app/media/rc4_files/"+ str(userId) + "_keys.csv"
+    fileName = str(parentId) + "/" + fileName
+    # CSV verilerini dosyadan oku
+    data_list = []
+
+    with open(filePath, 'r') as csvfile:
+        csv_reader = csv.reader(csvfile)
+        
+        for row in csv_reader:
+            data_list.append(row)
+    
+    key = rc4Key.encode('utf-8')
+
+    decrypted_result = decrypt_csv_with_rc4(key, data_list)
+    e_key=None
+
+    for row in decrypted_result:
+        if(fileName==row[3]):
+            e_key = row[2]
+    e_key = e_key.encode('utf-8') 
+
+    return e_key
 
 def rc4_encrypt(key, plaintext):
     cipher = ARC4.new(key)
@@ -475,13 +633,28 @@ def rc4_encrypt(key, plaintext):
     return ciphertext
 
 def encrypt_csv_with_rc4(key, csv_data):
-    encrypted_data_csv=[]
      # CSV verisini RC4 kullanarak şifrele
-    for data in csv_data:
-        encrypted_data=rc4_encrypt(key, data.encode())
-        encrypted_data_csv.append(encrypted_data)
+       # Veriyi RC4 kullanarak şifrele ve base64 ile stringe çevir
+    encrypted_data = [base64.b64encode(rc4_encrypt(key, data.encode())).decode() for data in csv_data]
     
-    return encrypted_data_csv
+    return encrypted_data
+
+def rc4_decrypt(key, ciphertext):
+    cipher = ARC4.new(key)
+    plaintext = cipher.decrypt(ciphertext)
+    return plaintext
+
+def decrypt_csv_with_rc4(key, encrypted_data):
+    plaintext_data_csv=[]
+   
+    for row in encrypted_data:
+        # Veriyi base64'ten çöz ve RC4 kullanarak çöz
+        decrypted_data_row = [rc4_decrypt(key, base64.b64decode(data)) for data in row]
+        # Sonuçları utf-8'e çevir
+        decrypted_row = [data.decode('utf-8') for data in decrypted_data_row]
+        plaintext_data_csv.append(decrypted_row)
+
+    return plaintext_data_csv
 
 def carryFile(request, path, id):
     if request.user.is_authenticated and request.method == 'POST':
@@ -499,6 +672,7 @@ def carryFile(request, path, id):
             return render(request, "deneme.html", {"message":"dosya veri tabınında bulunamadı"})
     return redirect('home', path=path)
 
+    
 def deneme(request):
     content = {}
     # files= getFiles(request.user.id, 2)
@@ -549,3 +723,4 @@ def delete_file_from_gridfs(file_id):
 delete_file_from_gridfs("your_file_id_here")
 
 """
+

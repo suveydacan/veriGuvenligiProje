@@ -1,6 +1,6 @@
 from django.urls import include, path, re_path
 from . import views
-from .views import CreateFolderView, CreateFileView, DownloadFileView
+from .views import CreateFolderView, CreateFileView, DownloadFileView, RC4KeyView
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -13,6 +13,7 @@ urlpatterns = [
     
     path("login/", views.logIn, name="login"),
     path("logout/", views.log_out, name="logout"),
+    path("rc4/", RC4KeyView.as_view(), name="rc4"),
     path("signUp/", views.signUp, name="signUp"),
     path("profile/", views.profile, name="profile"),
 
