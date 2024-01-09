@@ -168,9 +168,13 @@ def deleteFile(request, path, id):
         if objects:   
             file_url = objects.file_url
             objects.delete()
+            objects_key = FileRC4.objects.filter(user_id=user_id).first()
+            rc4_key = ""
+            if objects_key:
+                rc4_key = objects_key.rc4_key
             os.remove(os.path.join(settings.MEDIA_ROOT,'encrypted_files', file_url ))
             if(objects.encrypt_type=='DES' or objects.encrypt_type=='AES' or objects.encrypt_type=='Blowfish' ):
-                information_delete_from_rc4File(user_id, objects.encrypt_type, objects.name, objects.parent_folder_id)
+                information_delete_from_rc4File(user_id, objects.encrypt_type, objects.name, objects.parent_folder_id, rc4_key)
 
         return redirect('home', path=path)
     else:   
@@ -560,7 +564,7 @@ def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_
         # Veriyi CSV dosyasına yaz
         csv_writer.writerow(encrypted_result_str)
 
-def information_delete_from_rc4File(userId, encrypt_type, fileName, parentId):
+def information_delete_from_rc4File(userId, encrypt_type, fileName, parentId, rc4Key):
     filePath = "website_app/media/rc4_files/"+ str(userId) + "_keys.csv"
     fileName = str(parentId) + "/" + fileName
 
@@ -572,7 +576,7 @@ def information_delete_from_rc4File(userId, encrypt_type, fileName, parentId):
         for row in csv_reader:
             data_list.append(row)
     
-    key = b'SecretKey123'
+    key = rc4Key.encode('utf-8')
 
     decrypted_result = decrypt_csv_with_rc4(key, data_list)
 
