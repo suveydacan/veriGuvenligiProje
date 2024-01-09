@@ -35,7 +35,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import *
-from .serializers import FolderSerializer, FileSerializer
+from .serializers import FolderSerializer, FileSerializer , FileRC4Serializers
 
 
 import os
@@ -220,6 +220,12 @@ def profile(request):
         user_id = request.user.id
         home_folder_id = Folder.objects.get(user_id=user_id, parent_folder=None).id
         content= {"path": home_folder_id}
+        objects = FileRC4.objects.filter(user_id=user_id).first()
+        if objects:   
+            active= objects.active
+            if active == True : 
+                content.update({"active": active})
+
         return render(request, 'profile.html',content )
     else:
         return redirect('logIn')
@@ -282,20 +288,29 @@ class CreateFileView(APIView):
                 encryption_key = form.cleaned_data['encryption_key']
                 file = form.cleaned_data['file']
 
-                if encrypt_type == "DES" :
-                     self.des_encrypt(request.FILES["file"],encryption_key, file_url)
-                     key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id)
-                elif encrypt_type == "AES" :
-                     self.aes_encrypt(request.FILES["file"],encryption_key, file_url)
-                     key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id)
-                elif encrypt_type == "Blowfish" :
-                     self.blowfish_encrypt(request.FILES["file"],encryption_key, file_url)
-                     key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id)
+                objects_key = FileRC4.objects.filter(user_id=user_id).first()
+                rc4_key = ""
+
+                if objects_key:
+                    rc4_key = objects_key.rc4_key
+
+                    if encrypt_type == "DES" :
+                        self.des_encrypt(request.FILES["file"],encryption_key, file_url)
+                        key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id,rc4_key)
+                    elif encrypt_type == "AES" :
+                        self.aes_encrypt(request.FILES["file"],encryption_key, file_url)
+                        key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id,rc4_key )
+                    elif encrypt_type == "Blowfish" :
+                        self.blowfish_encrypt(request.FILES["file"],encryption_key, file_url)
+                        key_save_to_file(user_id,encrypt_type,encryption_key,file_name,parent_folder_id, rc4_key)
+                    else:
+                        encrypt_type = "None"
+                        file_url = parent_folder_id+ "_" + file_name
+                        request.FILES["file"].name = file_url
+                        self.save_nonencrypted_file(request.FILES["file"], file_url)
                 else:
-                    encrypt_type = "None"
-                    file_url = parent_folder_id+ "_" + file_name
-                    request.FILES["file"].name = file_url
-                    self.save_nonencrypted_file(request.FILES["file"], file_url)
+                    return render(request, 'deneme.html', context={'message': "rc4 key bulunamadı"})
+                
 
                 file_data = {'name': file_name, 'file_type': file_type, 
                              'encrypt_type': encrypt_type, 'encryption_key': encryption_key, 'parent_folder': parent_folder_id, 
@@ -406,23 +421,33 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
                     
                     file_path = os.path.join(settings.MEDIA_ROOT, 'encrypted_files', file["file_url"])
                     # key = self.get_encryptKey(file["user_id"], file["encrypt_type"],file["name"])
+
+                    objects_key = FileRC4.objects.filter(user_id=user_id).first()
+                    rc4_key = ""
+
+                    if objects_key:
+                        rc4_key = objects_key.rc4_key
                    
 
-                    if file["encrypt_type"] == "DES" :
-                        key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id)
-                        plaintext = self.des_decrypt(file_path,key)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
-                    elif file["encrypt_type"] == "AES" : 
-                        key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id)   
-                        plaintext = self.aes_decrypt(file_path,key)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
-                    elif file["encrypt_type"] == "Blowfish" :
-                        key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id) 
-                        plaintext = self.blowfish_decrypt(file_path,key)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                        if file["encrypt_type"] == "DES" :
+                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_idi, rc4_key)
+                            plaintext = self.des_decrypt(file_path,key)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                        elif file["encrypt_type"] == "AES" : 
+                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id, rc4_key)   
+                            plaintext = self.aes_decrypt(file_path,key)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                        elif file["encrypt_type"] == "Blowfish" :
+                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id, rc4_key) 
+                            plaintext = self.blowfish_decrypt(file_path,key)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                        else:
+                            plaintext = self.get_nonencrypted_file(file_path)
+                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                    
                     else:
-                        plaintext = self.get_nonencrypted_file(file_path)
-                        return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                       return render(request, "deneme.html", {"message":"rc4 key bulunamadı."})
+
                 else:
                     return render(request, "deneme.html", {"message":"file can not found in db"})
 
@@ -484,6 +509,28 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
             file_csv = str(user_id) + "_keys.csv"
             rc4_file_path = os.path.join(settings.MEDIA_ROOT, 'rc4_files', file_csv)
 
+class RC4KeyView(APIView):
+    def post(self, request, format=None):
+        if request.user.is_authenticated and request.method == 'POST':
+            user_id = request.user.id 
+            password = request.POST.get('password1')
+            againPassword = request.POST.get('password2')
+
+            if password == againPassword:
+                    rc4_key = password
+                    #FileRC4.objects.create(user_id=user_id, rc4_key=rc4_key)
+                    rc4_data = {'user_id': user_id, 'rc4_key': rc4_key, 'active': True}
+                    serializer = FileRC4Serializers(data=rc4_data)
+
+                    if serializer.is_valid():
+                       serializer.save()
+                       return redirect('profile') #return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+                    return render(request, 'deneme.html',{"message":"Yuppii"})
+            else:
+                    return render(request, 'deneme.html',{"message":"Şifreler eşleşmiyor. Lütfen tekrar deneyin."})
+        else:
+            return redirect("logIn")
 
 def pad(data):
     # Veriyi 8 byte'lık bloklara uygun hale getir
@@ -494,11 +541,11 @@ def unpad(data):
     # Veriden çıkartılan dolguyu kaldır
     return data[:-data[-1]]
 
-def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_id) :
+def key_save_to_file(user_id,encrypt_type,encryption_key,fileName,parent_folder_id, rc4Key) :
     fileName=parent_folder_id + "/" + fileName
 
     bilgiler = [str(user_id), encrypt_type, encryption_key, fileName]
-    key = b'SecretKey123'
+    key = rc4Key.encode('utf-8')
     ciphertext=encrypt_csv_with_rc4(key,bilgiler) 
     # Şifrelenmiş veriyi stringe çevirme
     encrypted_result_str =[str(item) for item in ciphertext] 
@@ -556,7 +603,7 @@ def information_delete_from_rc4File(userId, encrypt_type, fileName, parentId):
             csv_writer.writerow(encrypted_result_str)
                 
 
-def rc4_file_decrypt(userId,fileName,parentId):
+def rc4_file_decrypt(userId,fileName,parentId,rc4Key):
     filePath = "website_app/media/rc4_files/"+ str(userId) + "_keys.csv"
     fileName = str(parentId) + "/" + fileName
     # CSV verilerini dosyadan oku
@@ -568,7 +615,7 @@ def rc4_file_decrypt(userId,fileName,parentId):
         for row in csv_reader:
             data_list.append(row)
     
-    key = b'SecretKey123'
+    key = rc4Key.encode('utf-8')
 
     decrypted_result = decrypt_csv_with_rc4(key, data_list)
     e_key=None
@@ -625,6 +672,7 @@ def carryFile(request, path, id):
             return render(request, "deneme.html", {"message":"dosya veri tabınında bulunamadı"})
     return redirect('home', path=path)
 
+    
 def deneme(request):
     content = {}
     # files= getFiles(request.user.id, 2)

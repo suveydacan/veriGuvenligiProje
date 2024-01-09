@@ -6,15 +6,16 @@ from django.conf import settings
 from djongo.storage import GridFSStorage
 grid_fs_storage = GridFSStorage(collection='myfiles', base_url='./myfiles/')
 
-
 class Folder(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10, default='folder')
     parent_folder = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
     user_id = models.CharField(max_length=255)
 
-
-
+class FileRC4(models.Model):
+    user_id = models.CharField(max_length=255)
+    rc4_key = models.CharField(max_length=256)
+    active = models.BooleanField(default=True)
 
 class File(models.Model):
     name = models.CharField(max_length=255)
@@ -29,8 +30,8 @@ class File(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     file_url = models.CharField(max_length=512)
     file = models.FileField(upload_to='file', storage=grid_fs_storage, null=True) # upload_to=func_to_declare_where_save_it
-    # file = models.FileField(upload_to='file', storage=website_app_file_storage, null=True)
-    # file = models.FileField(upload_to='file', storage=default_storage, null=True)
+
+
 
     
     # path = models.CharField(max_length=255)
