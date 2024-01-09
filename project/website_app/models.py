@@ -14,6 +14,9 @@ class Folder(models.Model):
     user_id = models.CharField(max_length=255)
 
 
+class FileRC4(models.Model):
+    user_id = models.CharField(max_length=255)
+    rc4_key = models.CharField(max_length=256)
 
 
 class File(models.Model):
