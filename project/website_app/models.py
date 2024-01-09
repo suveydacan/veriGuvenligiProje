@@ -31,6 +31,8 @@ class File(models.Model):
     file_url = models.CharField(max_length=512)
     file = models.FileField(upload_to='file', storage=grid_fs_storage, null=True) # upload_to=func_to_declare_where_save_it
 
+
+
     
     # path = models.CharField(max_length=255)
 
@@ -50,4 +52,16 @@ yapılabiliyor
     # class FileItems(models.Model):
     #     file = models.ForeignKey('File', null=True, blank=True, on_delete=models.CASCADE)
 
+"""
+
+"""
+from django.core.files.storage import Storage
+from gridfs_storage.storage import GridFSStorage
+
+class WebsiteAppFileStorage(GridFSStorage):
+    def __init__(self, **kwargs):
+        kwargs['location'] = 'website_app_file'
+        super().__init__(**kwargs)
+
+website_app_file_storage = WebsiteAppFileStorage()
 """

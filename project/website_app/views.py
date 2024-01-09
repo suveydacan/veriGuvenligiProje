@@ -656,7 +656,21 @@ def decrypt_csv_with_rc4(key, encrypted_data):
 
     return plaintext_data_csv
 
+def carryFile(request, path, id):
+    if request.user.is_authenticated and request.method == 'POST':
+        user_id = request.user.id
+        path_parts = request.path.split('/')
+        parent_folder_id = path_parts[-3]
 
+        new_parent_folder_id = request.POST.get('folder-id')
+
+        objects = File.objects.filter(user_id=user_id, parent_folder_id=parent_folder_id, id=id).first()
+        if objects:
+            objects.parent_folder_id = new_parent_folder_id
+            objects.save()
+        else:
+            return render(request, "deneme.html", {"message":"dosya veri tabınında bulunamadı"})
+    return redirect('home', path=path)
 
     
 def deneme(request):
@@ -682,4 +696,31 @@ def media_serve(request, path):
     file_path = os.path.join(media_root, path)
     return FileResponse(open(file_path, 'rb'))
 
+
+
+"""
+from django.http import Http404
+from gridfs_storage.utils import get_id
+
+def delete_file_from_gridfs(file_id):
+    try:
+        file_id = get_id(file_id)
+        fs = grid_fs_storage._gridfs
+        file_info = fs.get(file_id)
+
+        # Dosyayı GridFS koleksiyonundan sil
+        fs.delete(file_id)
+
+        # Parçaları GridFS koleksiyonundan sil
+        chunks_collection = fs._chunks
+        chunks_collection.delete_many({"files_id": file_info._id})
+
+        print(f"File {file_id} deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting file: {e}")
+
+# Dosya ID'sini kullanarak dosyayı ve parçalarını sil
+delete_file_from_gridfs("your_file_id_here")
+
+"""
 

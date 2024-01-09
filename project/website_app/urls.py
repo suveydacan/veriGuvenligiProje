@@ -26,6 +26,7 @@ urlpatterns = [
     path("home/<path:path>/upload-file", CreateFileView.as_view(), name="upload-file"),
     path("home/<path:path>/<int:id>/deleteFile", views.deleteFile, name="deleteFile"),
     path("home/<path:path>/<int:id>/downloadFile", DownloadFileView.as_view(), name="downloadFile"),
+    path("home/<path:path>/<int:id>/carryFile", views.carryFile, name="carryFile"),
 
 
     # path('media/<path>', views.media_serve, name='media-serve'),
