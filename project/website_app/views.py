@@ -196,6 +196,14 @@ def home(request, path):
         form = FileUploadForm()
         content.update({"uploadForm":form})
 
+        #all folder
+        allfolders_object= Folder.objects.filter(user_id=request.user.id)
+        allfoldersfolders = []
+        for folder in allfolders_object:
+            folder_dict = {"name":folder.name, "id":folder.id}
+            allfoldersfolders.append(folder_dict)
+        content.update({'allfolder':allfoldersfolders})
+
         folder_name = ""
         if is_home == "home":
             objects = Folder.objects.filter(user_id=request.user.id, parent_folder_id=None).first()
@@ -434,20 +442,20 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
                    
 
                         if file["encrypt_type"] == "DES" :
-                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_idi, rc4_key)
+                            key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id, rc4_key)
                             plaintext = self.des_decrypt(file_path,key)
-                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                            return render(request, "download_file.html", {"path":path, "plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
                         elif file["encrypt_type"] == "AES" : 
                             key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id, rc4_key)   
                             plaintext = self.aes_decrypt(file_path,key)
-                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                            return render(request, "download_file.html", {"path":path, "plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
                         elif file["encrypt_type"] == "Blowfish" :
                             key =rc4_file_decrypt(user_id,objects.name,objects.parent_folder_id, rc4_key) 
                             plaintext = self.blowfish_decrypt(file_path,key)
-                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                            return render(request, "download_file.html", {"path":path, "plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
                         else:
                             plaintext = self.get_nonencrypted_file(file_path)
-                            return render(request, "download_file.html", {"plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
+                            return render(request, "download_file.html", {"path":path, "plaintext":(plaintext), "file_name":file["name"], "file_type":file["file_type"]})
                     
                     else:
                        return render(request, "deneme.html", {"message":"rc4 key bulunamadı."})
@@ -467,7 +475,10 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
 
             plaintext = cipher.decrypt(ciphertext)
             plaintext = unpad(plaintext)
-            plaintext=plaintext.decode('utf-8')
+            
+            is_txt = file_path.split('.')[-1]
+            if is_txt == "txt":
+                plaintext=plaintext.decode('utf-8')
 
             return plaintext 
 
@@ -484,7 +495,11 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
             decrypted_text = decryptor.update(ciphertext) + decryptor.finalize()
             unpadder = padding.PKCS7(algorithms.AES.block_size * 8).unpadder()
             unpadded_plaintext = unpadder.update(decrypted_text) + unpadder.finalize()
-            unpadded_plaintext=unpadded_plaintext.decode('utf-8')
+
+            is_txt = file_path.split('.')[-1]
+            if is_txt == "txt":
+                unpadded_plaintext=unpadded_plaintext.decode('utf-8')
+
             return unpadded_plaintext
 
         def blowfish_decrypt(self, file_path,key):
@@ -498,7 +513,9 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
             unpadder = padding.PKCS7(8 * 8).unpadder()
             plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
 
-            plaintext=plaintext.decode('utf-8')
+            is_txt = file_path.split('.')[-1]
+            if is_txt == "txt":
+                plaintext=plaintext.decode('utf-8')
 
             return plaintext
 
@@ -506,7 +523,13 @@ class DownloadFileView(APIView): # otomatik çalışacak fonksiyonların isimler
             plaintext = ""
             with open(file_path, 'rb') as file:
                 plaintext = file.read()
-            plaintext = plaintext.decode('utf-8')
+
+            is_txt = file_path.split('.')[-1]
+            if is_txt == "txt":
+                plaintext=plaintext.decode('utf-8')
+            else:
+                plaintext = base64.b64encode(plaintext).decode('utf-8')
+                
             return plaintext
         
         def get_encryptKey(self, user_id, encrypt_type,fileName): 
@@ -679,19 +702,9 @@ def carryFile(request, path, id):
     
 def deneme(request):
     content = {}
-    # files= getFiles(request.user.id, 2)
-    # content.update({"files":files})
-    # folders = getFolders(request.user.id, 2)
-    # content.update({"folders":folders, "message":""})
 
-    user_id = request.user.id
-    path_parts = request.path.split('/')
-    parent_folder_id = path_parts[-2]
-
-    objects = File.objects.filter(user_id=str(user_id), parent_folder_id=2, id=22)
-    content.update({"file":objects})
-
-    return render(request, 'deneme.html',content )
+    data = {'message': 'Hello, World!'}
+    return JsonResponse(data)
 
 
 # örnek fonksiyon Bu fonksiyon, Django'nun geliştirme sunucusu üzerinden medya dosyalarını servis etmenizi sağlar. 

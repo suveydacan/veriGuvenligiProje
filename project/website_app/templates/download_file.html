@@ -4,13 +4,34 @@
 
     </head>
     <body>
-        {{plaintext}}
+        <!-- <a href="">indiriliyor...</a> -->
+        <form id="dateRangeFrom" action="{% url 'home' path=path %}" method="POST">
+            {% csrf_token %}
+            <button id="backhome" name="backhome" value="backhome"></button>
+          </form>
         
         <script>
                         
-        function download(filename, file_type, text) {
+            function download(filename, file_type, data) {
             var element = document.createElement('a');
-            var blob = new Blob([text], { type: file_type });
+            var blob;
+
+            if (file_type === 'text/plain') {
+                // Text dosyası
+                blob = new Blob([data], { type: file_type });
+            } else if (file_type.includes('image')) {
+                var bytes = new Uint8Array(data);
+                console.log(bytes);
+                blob = new Blob([data], { type: file_type });
+            } else if (file_type === 'application/pdf') {
+                // PDF dosyası
+                // data: binary veri olarak alındığında
+                blob = new Blob([new Uint8Array(data)], { type: file_type });
+            } else {
+                console.error('Desteklenmeyen dosya türü');
+                return;
+            }
+
             element.setAttribute('href', URL.createObjectURL(blob));
             element.setAttribute('download', filename);
 
@@ -20,19 +41,27 @@
             element.click();
 
             document.body.removeChild(element);
+
+            var backbutton = document.getElementById('backhome');
+            // backbutton.click();
         }
+
 
         </script>
         {% if plaintext %}
         <script>
             var file_type = "{{file_type}}";
-            var plaintext = "{{plaintext|safe}}";
+            var plaintext = "{{ plaintext|escapejs|safe }}";
             var file_name = "{{file_name}}";
 
             // Start file download.
             download(file_name,file_type, plaintext);
         </script>
+        <p>plain text mevcut</p>
+        {{file_type}}
+        {{ plaintext|escapejs|safe }}
         {% endif %}
+
         
     </body>
 </html>
