@@ -7,7 +7,7 @@
         <!-- <a href="">indiriliyor...</a> -->
         <form id="dateRangeFrom" action="{% url 'home' path=path %}" method="POST">
             {% csrf_token %}
-            <button id="backhome" name="backhome" value="backhome"></button>
+            <button id="backhome" hidden name="backhome" value="backhome"></button>
           </form>
         
         <script>
@@ -20,9 +20,7 @@
                 // Text dosyası
                 blob = new Blob([data], { type: file_type });
             } else if (file_type.includes('image')) {
-                var bytes = new Uint8Array(data);
-                console.log(bytes);
-                blob = new Blob([data], { type: file_type });
+                blob = new Blob([[new Uint8Array(data)]], { type: file_type });
             } else if (file_type === 'application/pdf') {
                 // PDF dosyası
                 // data: binary veri olarak alındığında
@@ -43,7 +41,7 @@
             document.body.removeChild(element);
 
             var backbutton = document.getElementById('backhome');
-            // backbutton.click();
+            backbutton.click();
         }
 
 
@@ -58,8 +56,6 @@
             download(file_name,file_type, plaintext);
         </script>
         <p>plain text mevcut</p>
-        {{file_type}}
-        {{ plaintext|escapejs|safe }}
         {% endif %}
 
         

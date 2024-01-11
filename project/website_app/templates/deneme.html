@@ -33,23 +33,8 @@
 
         {{message}}
         <br>
+        {{error}}
 
-        <button id="ajax-button">Get Data</button>
-
-        <div id="ajax-response"></div>
-
-        <script>
-        $(document).ready(function() {
-            $('#ajax-button').click(function() {
-                $.ajax({
-                    url: '{% url "get_data" %}',
-                    success: function(data) {
-                        $('#ajax-response').text(data.message);
-                    }
-                });
-            });
-        });
-        </script>
 
     </div>
 </body>

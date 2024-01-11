@@ -216,6 +216,41 @@ def home(request, path):
         return render(request, 'home.html',content )
     else:   
         return redirect('logIn')
+    
+def filter(request, path):
+    if request.user.is_authenticated:
+        content= {"path": path}
+
+
+        files = File.objects.filter(user_id=request.user.id, encrypt_type="None")
+        allfiles = []
+        for file in files:
+            file_dict = {"name": file.name,
+                     'id': file.id,
+                     'file_type': file.file_type,
+                     'parent_folder': file.parent_folder_id,
+                     'user_id': file.user_id,
+                     "encrypt_type": file.encrypt_type,
+                     "size": file.size,
+                     "last_modified": file.last_modified,
+                     "created": file.created,
+                     "file_url": file.file_url}
+            allfiles.append(file_dict)
+        content.update({'sifresizFiles':allfiles})
+        
+        #all folder
+        allfolders_object= Folder.objects.filter(user_id=request.user.id)
+        allfoldersfolders = []
+        for folder in allfolders_object:
+            folder_dict = {"name":folder.name, "id":folder.id}
+            allfoldersfolders.append(folder_dict)
+        content.update({'allfolder':allfoldersfolders})
+
+
+        return render(request, 'filter.html',content )
+    else:   
+        return redirect('logIn')
+
 
 def openSubFolder(request, path, id):
     if request.user.is_authenticated:
@@ -552,8 +587,8 @@ class RC4KeyView(APIView):
                     if serializer.is_valid():
                        serializer.save()
                        return redirect('profile') #return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-                    return render(request, 'deneme.html',{"message":"Yuppii"})
+                    else:
+                        return render(request, 'deneme.html',{"message":"form is not valid"})
             else:
                     return render(request, 'deneme.html',{"message":"Şifreler eşleşmiyor. Lütfen tekrar deneyin."})
         else:
