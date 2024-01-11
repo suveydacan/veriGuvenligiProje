@@ -22,6 +22,7 @@ urlpatterns = [
     path('home/subfolder/<path:path>/<int:id>/', views.openSubFolder, name='subfolder'),
     re_path(r'^home/(?P<path>[\d/]+)/adding-folder', CreateFolderView.as_view(), name="adding-folder"),
     path("home/<path:path>/<int:id>/deleteFolder", views.deleteFolder, name="deleteFolder"),
+    path("filter/<path:path>", views.filter, name="filter"),
 
     path("home/<path:path>/upload-file", CreateFileView.as_view(), name="upload-file"),
     path("home/<path:path>/<int:id>/deleteFile", views.deleteFile, name="deleteFile"),
