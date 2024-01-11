@@ -19,6 +19,13 @@ class FileRC4Serializers(serializers.ModelSerializer):
         model = FileRC4
         fields = ['user_id', 'rc4_key', 'active']
 
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['id', 'name', 'type', 'file_type', 'encrypt_type', 'parent_folder', 'user_id', 'size', 'last_modified', 'created', 'file', 'file_url']
+
+
+
     
 
 

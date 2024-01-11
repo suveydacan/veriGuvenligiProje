@@ -12,6 +12,7 @@ class Folder(models.Model):
     parent_folder = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE)
     user_id = models.CharField(max_length=255)
 
+
 class FileRC4(models.Model):
     user_id = models.CharField(max_length=255)
     rc4_key = models.CharField(max_length=256)
